@@ -88,7 +88,8 @@ export default function Timetable({
     );
   }
 
-  if (!model.week || !weekHasSessions(model.week)) {
+  // An empty week still renders in edit mode so a course can be added to it.
+  if (!model.week || (!editing && !weekHasSessions(model.week))) {
     return (
       <div className="week-break" key="empty">
         <strong>暂无课表数据</strong>
