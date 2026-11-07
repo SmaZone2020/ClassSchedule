@@ -160,6 +160,18 @@ pub fn apply_widget(app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// The widget is pinned to the desktop layer with `WS_EX_NOACTIVATE`, so it can
+/// never become the foreground window. Mouse clicks still reach the webview and
+/// inputs still take DOM focus, but no keystroke is delivered. Opening a form
+/// lifts the flag for as long as it is on screen.
+#[command]
+pub fn set_widget_editable(app: AppHandle, editable: bool) -> Result<(), String> {
+    if let Some(widget) = app.get_webview_window("widget") {
+        tray::set_editable(&widget, editable);
+    }
+    Ok(())
+}
+
 #[command]
 pub fn set_widget_visible(app: AppHandle, visible: bool) -> Result<(), String> {
     let state = app.state::<AppState>();

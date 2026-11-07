@@ -111,6 +111,18 @@ pub fn pin_to_desktop(window: &tauri::WebviewWindow, enabled: bool) {
     }
 }
 
+/// Let the widget window take keyboard focus while a form is open, then hand
+/// the desktop-pin behaviour back when the form closes.
+pub fn set_editable(window: &tauri::WebviewWindow, editable: bool) {
+    #[cfg(windows)]
+    if let Ok(hwnd) = window.hwnd() {
+        platform::set_editable(hwnd.0 as isize, editable);
+    }
+    if editable {
+        let _ = window.set_focus();
+    }
+}
+
 pub fn apply_click_through_state(window: &tauri::WebviewWindow, enabled: bool) {
     let _ = window.set_ignore_cursor_events(enabled);
     #[cfg(windows)]

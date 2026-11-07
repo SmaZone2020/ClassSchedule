@@ -85,6 +85,16 @@ export default function Widget() {
     rows: model?.rows ?? []
   });
 
+  // A desktop-pinned widget is `WS_EX_NOACTIVATE`: the form inside it would take
+  // DOM focus but never see a keystroke. Lift the flag while editing (Esc, text
+  // fields) and hand the desktop-pin behaviour back when edit mode ends.
+  const needsKeyboard = editing || Boolean(editor.editor);
+  useEffect(() => {
+    invoke("set_widget_editable", { editable: needsKeyboard }).catch(() => {});
+    return () => {
+      if (needsKeyboard) invoke("set_widget_editable", { editable: false }).catch(() => {});
+    };
+  }, [needsKeyboard]);
   const goDay = (delta: 1 | -1) => {
     if (!settings || !model) return;
     const base =

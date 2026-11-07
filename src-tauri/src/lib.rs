@@ -66,6 +66,7 @@ pub fn run() {
             commands::export_template,
             commands::open_settings_window,
             commands::apply_widget,
+            commands::set_widget_editable,
             commands::set_widget_visible,
             commands::set_click_through,
             commands::validate_schedule_text,

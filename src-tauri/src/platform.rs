@@ -12,6 +12,7 @@ use windows::Win32::UI::WindowsAndMessaging::{
 
 static PIN_HWND: AtomicIsize = AtomicIsize::new(0);
 static PIN_ENABLED: AtomicBool = AtomicBool::new(false);
+static EDITABLE: AtomicBool = AtomicBool::new(false);
 static KEEPER: OnceLock<()> = OnceLock::new();
 
 fn apply_pin(hwnd: isize, enabled: bool) {
@@ -30,9 +31,14 @@ fn apply_pin(hwnd: isize, enabled: bool) {
 
         // Never show up in the taskbar. When unpinned the window may take focus
         // again, so the widget can be brought forward like any other window.
+        //
+        // `WS_EX_NOACTIVATE` keeps the widget from stealing focus while it sits
+        // on the desktop, but it also means the window can never become the
+        // foreground window — a form inside it can hold DOM focus and still
+        // receive no keystroke. While a form is open `EDITABLE` lifts the flag.
         let style = GetWindowLongW(window, GWL_EXSTYLE) as u32;
         let mut updated = style | WS_EX_TOOLWINDOW.0;
-        updated = if enabled {
+        updated = if enabled && !EDITABLE.load(Ordering::SeqCst) {
             updated | WS_EX_NOACTIVATE.0
         } else {
             updated & !WS_EX_NOACTIVATE.0
@@ -63,6 +69,14 @@ pub fn set_desktop_pin(hwnd: isize, enabled: bool) {
             }
         });
     });
+}
+
+/// Allow the widget to become the foreground window so an open form can take
+/// keyboard input. Restores the pinned style when disabled.
+pub fn set_editable(hwnd: isize, editable: bool) {
+    EDITABLE.store(editable, Ordering::SeqCst);
+    let enabled = PIN_ENABLED.load(Ordering::SeqCst);
+    apply_pin(hwnd, enabled);
 }
 
 pub fn set_click_through(hwnd: isize, enabled: bool) {
