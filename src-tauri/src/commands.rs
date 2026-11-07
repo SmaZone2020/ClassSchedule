@@ -2,6 +2,7 @@ use serde_json::{json, Value};
 use tauri::command;
 use tauri::{AppHandle, Manager};
 
+use crate::autostart;
 use crate::geometry;
 use crate::models::{AppData, MonitorInfo, Settings, WallpaperInfo, WidgetSize};
 use crate::storage;
@@ -38,6 +39,14 @@ pub fn get_settings(app: AppHandle) -> Result<Settings, String> {
 pub fn update_settings(app: AppHandle, mut settings: Settings) -> Result<Settings, String> {
     settings.scale = settings.scale.clamp(0.3, 2.0);
     settings.wallpaper.dim = settings.wallpaper.dim.clamp(0.0, 0.9);
+
+    // Keep the registry in sync before the new value is stored, so a failure
+    // surfaces instead of silently leaving a dead autostart entry.
+    let previous = app.state::<AppState>().with_settings(|s| s.autostart);
+    if previous != settings.autostart {
+        autostart::set_enabled(settings.autostart)?;
+    }
+
     storage::save_settings(&app, &settings)?;
     *app.state::<AppState>().settings.lock().unwrap() = settings.clone();
 

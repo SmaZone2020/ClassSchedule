@@ -153,6 +153,7 @@ pub struct Settings {
     pub wallpaper: WallpaperSettings,
     pub font: FontSettings,
     pub widget_visible: bool,
+    pub autostart: bool,
 }
 
 fn default_periods() -> Vec<PeriodTime> {
@@ -195,6 +196,7 @@ impl Default for Settings {
             wallpaper: WallpaperSettings::default(),
             font: FontSettings::default(),
             widget_visible: true,
+            autostart: false,
         }
     }
 }

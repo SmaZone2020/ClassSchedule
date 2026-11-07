@@ -84,6 +84,7 @@ export interface Settings {
   wallpaper: WallpaperSettings;
   font: FontSettings;
   widgetVisible: boolean;
+  autostart: boolean;
 }
 
 export interface MonitorInfo {

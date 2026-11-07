@@ -147,6 +147,13 @@ export function PositionSection({ settings, monitors, onChange }: PositionSectio
               onCheckedChange={(checked) => onChange({ widgetVisible: checked })}
             />
           </ToggleRow>
+          <ToggleRow label="开机自启动" hint="登录 Windows 后自动在桌面显示课表。">
+            <Switch
+              checked={settings.autostart}
+              ariaLabel="开机自启动"
+              onCheckedChange={(checked) => onChange({ autostart: checked })}
+            />
+          </ToggleRow>
         </CardContent>
       </Card>
     </>

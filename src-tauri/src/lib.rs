@@ -1,3 +1,4 @@
+mod autostart;
 mod commands;
 mod fonts;
 mod geometry;
@@ -94,6 +95,7 @@ pub fn run() {
             storage::ensure_data_dir(&handle);
             storage::load_schedule(&handle);
             *app.state::<tray::AppState>().settings.lock().unwrap() = settings.clone();
+            autostart::sync(settings.autostart);
 
             tray::setup_tray(&handle)?;
 
