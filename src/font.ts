@@ -62,6 +62,12 @@ export async function applyAppFont(font: FontSettings | undefined) {
   if (!font) return;
   const root = document.documentElement;
 
+  // Empty means "no custom font": the document keeps its own default stack.
+  if (!font.family) {
+    root.style.removeProperty("--app-font");
+    return;
+  }
+
   if (font.family !== CUSTOM_FAMILY) {
     root.style.setProperty("--app-font", `${quote(font.family)}, ${FALLBACK}`);
     return;
@@ -75,8 +81,8 @@ export async function applyAppFont(font: FontSettings | undefined) {
       return;
     }
   } catch {
-    // Fall through to the system stack when the folder is missing.
+    // Fall through to the default stack when the folder is missing.
   }
 
-  root.style.setProperty("--app-font", `"Source Han Serif CN", "SimSun", ${FALLBACK}`);
+  root.style.removeProperty("--app-font");
 }

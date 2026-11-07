@@ -4,10 +4,6 @@ use std::path::{Path, PathBuf};
 use base64::Engine;
 use serde::Serialize;
 
-/// The bundled 思源宋体 folder shipped on the author's machine. Missing on
-/// other machines — callers fall back to system serif.
-pub const DEFAULT_FONT_DIR: &str = "D:\\Font\\SiYuanSongTiRegular";
-
 /// CSS family used for every `@font-face` we inject. The user picks the file,
 /// not the internal name, so we always expose one stable family.
 pub const CUSTOM_FAMILY: &str = "WidgetCustomFont";
@@ -183,19 +179,7 @@ pub fn system_families() -> Vec<String> {
 }
 
 pub fn catalog(current_dir: &str) -> FontCatalog {
-    let mut dirs = vec![current_dir.to_string()];
-    if current_dir != DEFAULT_FONT_DIR {
-        dirs.push(DEFAULT_FONT_DIR.to_string());
-    }
-
-    let mut custom: Vec<FontFile> = Vec::new();
-    for dir in dirs {
-        for face in faces_in(&dir) {
-            if !custom.iter().any(|item| item.path == face.path) {
-                custom.push(face);
-            }
-        }
-    }
+    let custom = faces_in(current_dir);
 
     FontCatalog {
         system: system_families(),

@@ -119,8 +119,8 @@ pub struct FontSettings {
 impl Default for FontSettings {
     fn default() -> Self {
         Self {
-            family: crate::fonts::CUSTOM_FAMILY.into(),
-            dir: crate::fonts::DEFAULT_FONT_DIR.into(),
+            family: String::new(),
+            dir: String::new(),
         }
     }
 }

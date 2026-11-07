@@ -35,7 +35,7 @@ export const defaultSettings: Settings = {
   ],
   css: { enabled: false, container: "", course: "" } as CustomCss,
   wallpaper: { mode: "system", customPath: null, dim: 0.12 },
-  font: { family: "WidgetCustomFont", dir: "D:\\Font\\SiYuanSongTiRegular" },
+  font: { family: "", dir: "" },
   widgetVisible: true
 };
 
