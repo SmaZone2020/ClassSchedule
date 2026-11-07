@@ -8,7 +8,7 @@ import {
   sessionStartLabel
 } from "../scheduleUtils";
 import type { GridRow } from "../periodGrid";
-import { blockAt, periodAt, periodBounds, rowOfPeriod, type RowMetric } from "./gridHit";
+import { blockAt, periodAtPoint, periodBounds, rowOfPeriod, type RowMetric } from "./gridHit";
 import { Xmark } from "./icons";
 import type { SessionRef } from "../scheduleEdit";
 
@@ -23,6 +23,8 @@ interface EditCardProps {
   now: Date;
   rows: GridRow[];
   metrics: RowMetric[];
+  /** Highest period this card may grow to before touching the next course. */
+  limitEnd: number;
   dragging: boolean;
   onOpen: (ref: SessionRef) => void;
   onDelete: (ref: SessionRef) => void;
@@ -54,7 +56,8 @@ export default function EditCard({
 
   const range = sessionRange(session);
   const bounds = periodBounds(rows);
-  const end = Math.min(previewEnd ?? range?.end ?? bounds.min, bounds.max);
+  const limit = Math.min(bounds.max, limitEnd);
+  const end = Math.min(previewEnd ?? range?.end ?? bounds.min, limit);
   const start = range?.start ?? bounds.min;
 
   const startRow = rowOfPeriod(rows, start) ?? 0;
@@ -76,20 +79,25 @@ export default function EditCard({
 
     card.setPointerCapture(event.pointerId);
     const original = range.end;
+    let last: number | null = null;
 
     const onMove = (move: PointerEvent) => {
-      const target = periodAt(grid, rows, metrics, move.clientY);
-      if (target !== null) setPreviewEnd(Math.max(target, start));
+      // Live measurement: memoised metrics lag a frame and used to teleport.
+      const target = periodAtPoint(grid, rows, move.clientY);
+      if (target === null) return;
+      const next = Math.min(Math.max(target, start), limit);
+      last = next;
+      setPreviewEnd(next);
     };
 
     const onUp = () => {
-      card.releasePointerCapture(event.pointerId);
+      if (card.hasPointerCapture(event.pointerId)) {
+        card.releasePointerCapture(event.pointerId);
+      }
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
-      setPreviewEnd((value) => {
-        if (value !== null && value !== original) onResize({ date, index }, value);
-        return null;
-      });
+      setPreviewEnd(null);
+      if (last !== null && last !== original) onResize({ date, index }, last);
     };
 
     window.addEventListener("pointermove", onMove);

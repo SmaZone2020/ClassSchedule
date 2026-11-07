@@ -3,9 +3,12 @@ import type { Schedule } from "../types";
 import type { GridRow } from "../periodGrid";
 import { sessionRange } from "../scheduleUtils";
 import {
+  clampResizeEnd,
   createSession,
+  daySessions,
   findSession,
   moveSession,
+  rangeFree,
   removeSession,
   updateSession,
   type SessionRef,
@@ -63,14 +66,21 @@ export function useScheduleEditor({ schedule, commit, rows }: Options) {
 
   const closeEditor = () => setEditor(null);
 
-  const save = (values: SessionValues) => {
-    if (!schedule || !editor) return;
-    commit(
-      editor.ref
-        ? updateSession(schedule, editor.ref, values)
-        : createSession(schedule, editor.date, values)
-    );
+  /** Returns an error message when the range collides, otherwise saves. */
+  const save = (values: SessionValues): string | null => {
+    if (!schedule || !editor) return "课表尚未载入";
+    const ignore = editor.ref ? editor.ref.index : -1;
+    const sameDay = !editor.ref || editor.ref.date === editor.date;
+    if (sameDay && !rangeFree(daySessions(schedule, editor.date), values.start, values.end, ignore)) {
+      return "该时间段已有课程";
+    }
+    const next = editor.ref
+      ? updateSession(schedule, editor.ref, values)
+      : createSession(schedule, editor.date, values);
+    if (next === schedule) return "该时间段已有课程";
+    commit(next);
     setEditor(null);
+    return null;
   };
 
   const remove = (ref: SessionRef) => {
@@ -84,13 +94,21 @@ export function useScheduleEditor({ schedule, commit, rows }: Options) {
     const session = findSession(schedule, ref);
     const range = sessionRange(session ?? { periods: null });
     if (!session || !range) return;
+    const clamped = clampResizeEnd(
+      daySessions(schedule, ref.date),
+      ref.index,
+      range.start,
+      end,
+      bounds.max
+    );
+    if (clamped === range.end) return;
     commit(
       updateSession(schedule, ref, {
         course: session.course,
         courseShort: session.courseShort,
         location: session.location,
         start: range.start,
-        end
+        end: clamped
       })
     );
   };
@@ -134,7 +152,19 @@ export function useScheduleEditor({ schedule, commit, rows }: Options) {
         Math.max(period, bounds.min),
         Math.max(bounds.min, bounds.max - state.span + 1)
       );
-      const preview = { date, start, end: start + state.span - 1 };
+      const end = start + state.span - 1;
+      // Same-day moves must ignore the dragged card, cross-day moves must not.
+      const ignore =
+        date === state.ref.date && schedule ? state.ref.index : -1;
+      const free = !schedule || rangeFree(daySessions(schedule, date), start, end, ignore);
+
+      if (!free) {
+        state.preview = null;
+        setDragPreview(null);
+        return;
+      }
+
+      const preview = { date, start, end };
       state.preview = preview;
       setDragPreview(preview);
     };

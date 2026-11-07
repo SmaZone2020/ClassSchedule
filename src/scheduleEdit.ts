@@ -53,6 +53,56 @@ export function findSession(schedule: Schedule | null, ref: SessionRef): Session
   return findDay(schedule, ref.date)?.day.sessions[ref.index] ?? null;
 }
 
+/** Sessions of one day, in their stored order. */
+export function daySessions(schedule: Schedule | null, date: string): Session[] {
+  if (!schedule) return [];
+  return findDay(schedule, date)?.day.sessions ?? [];
+}
+
+/**
+ * True when `[start, end]` does not intersect any session of the day.
+ * `ignore` skips the session being edited / moved.
+ */
+export function rangeFree(
+  sessions: Session[],
+  start: number,
+  end: number,
+  ignore = -1
+): boolean {
+  const low = Math.min(start, end);
+  const high = Math.max(start, end);
+  return !sessions.some((session, index) => {
+    if (index === ignore) return false;
+    const range = sessionRange(session);
+    if (!range) return false;
+    return low <= range.end && high >= range.start;
+  });
+}
+
+/** Last period a course starting at `start` may reach before hitting a neighbour. */
+export function maxEndAt(sessions: Session[], start: number, ignore = -1): number {
+  let limit = Number.POSITIVE_INFINITY;
+  sessions.forEach((session, index) => {
+    if (index === ignore) return;
+    const range = sessionRange(session);
+    if (!range || range.start <= start) return;
+    limit = Math.min(limit, range.start - 1);
+  });
+  return limit;
+}
+
+/** Clamp a resize target so it never grows into the next course. */
+export function clampResizeEnd(
+  sessions: Session[],
+  index: number,
+  start: number,
+  end: number,
+  boundsMax: number
+): number {
+  const limit = Math.min(boundsMax, maxEndAt(sessions, start, index));
+  return Math.min(Math.max(end, start), limit);
+}
+
 function sortSessions(sessions: Session[]): Session[] {
   return [...sessions].sort((a, b) => {
     const left = sessionRange(a)?.start ?? 0;
@@ -77,8 +127,11 @@ export function updateSession(
   values: SessionValues
 ): Schedule {
   const next = clone(schedule);
-  const session = findDay(next, ref.date)?.day.sessions[ref.index];
-  if (!session) return schedule;
+  const day = findDay(next, ref.date)?.day;
+  const session = day?.sessions[ref.index];
+  if (!day || !session) return schedule;
+  // Courses may never overlap, so reject a range that collides with a neighbour.
+  if (!rangeFree(day.sessions, values.start, values.end, ref.index)) return schedule;
   applyValues(session, values);
   findDay(next, ref.date)!.day.sessions = sortSessions(findDay(next, ref.date)!.day.sessions);
   return rebuildFlat(next);
@@ -97,6 +150,10 @@ export function moveSession(
   if (!from) return schedule;
   const target = ensureDay(next, toDate);
   if (!target) return schedule;
+
+  const sameDay = from.day === target;
+  const ignore = sameDay ? ref.index : -1;
+  if (!rangeFree(target.sessions, start, end, ignore)) return schedule;
 
   const [session] = from.day.sessions.splice(ref.index, 1);
   if (!session) return schedule;
@@ -117,6 +174,7 @@ export function createSession(
   const next = clone(schedule);
   const day = ensureDay(next, toDate);
   if (!day) return schedule;
+  if (!rangeFree(day.sessions, values.start, values.end)) return schedule;
   const session: Session = { periods: { start: values.start, end: values.end }, course: "" };
   applyValues(session, values);
   day.sessions.push(session);

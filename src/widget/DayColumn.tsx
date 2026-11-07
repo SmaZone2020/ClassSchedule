@@ -9,7 +9,7 @@ import {
   sessionRange,
   sessionStartLabel
 } from "../scheduleUtils";
-import { blockAt, periodAt, periodBounds, rowOfPeriod, rowMetrics } from "./gridHit";
+-import { blockAt, periodAt, periodBounds, rowOfPeriod, rowMetrics } from "./gridHit";
 import { useElementHeight } from "./useElementHeight";
 import EditCard from "./EditCard";
 import type { SessionRef } from "../scheduleEdit";
@@ -104,8 +104,8 @@ export default function DayColumn({
     if (period !== null && period !== hoverPeriod) setHoverPeriod(period);
   };
 
-  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!editing) return;
+  const handleContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (settings.clickThrough) return;
     const target = event.target as HTMLElement;
     if (target.closest(".course-card")) return;
     const grid = gridRef.current;
@@ -242,6 +242,7 @@ export default function DayColumn({
             <div
               key={`loose-${index}`}
               className="course-card loose"
+              data-session-index={index}
               style={{ ...courseVars(color) } as React.CSSProperties}
             >
               <div className="course-name">{title}</div>

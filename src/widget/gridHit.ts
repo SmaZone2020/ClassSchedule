@@ -7,7 +7,7 @@ export interface RowMetric {
 
 /** Pixel top/height of every grid row, derived from the fr weights. */
 export function rowMetrics(rows: GridRow[], height: number, gap: number): RowMetric[] {
-  if (!rows.length) return [];
+  if (!rows.length || height <= 0) return [];
   const totalGap = gap * Math.max(0, rows.length - 1);
   const weight = rows.reduce((sum, row) => sum + row.weight, 0) || 1;
   const unit = Math.max(0, (height - totalGap) / weight);
@@ -32,7 +32,14 @@ export function blockAt(
   return { top: first.top, height: last.top + last.height - first.top };
 }
 
-/** Row index under a client Y. */
+/**
+ * Row index under a client Y.
+ *
+ * Rows are separated by a gap, so a pointer can legitimately land *between*
+ * two rows. Returning "the last row" in that case made every hover / drag /
+ * resize jump to the bottom of the grid; instead pick the row containing the
+ * point, else the nearest one by edge distance.
+ */
 export function rowIndexAt(
   grid: HTMLElement,
   metrics: RowMetric[],
@@ -43,11 +50,23 @@ export function rowIndexAt(
   if (box.height <= 0) return null;
   const y = clientY - box.top;
 
+  let best = -1;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
   for (let index = 0; index < metrics.length; index += 1) {
     const metric = metrics[index];
+    if (metric.height <= 0) continue;
     if (y >= metric.top && y <= metric.top + metric.height) return index;
+
+    const distance =
+      y < metric.top ? metric.top - y : y - (metric.top + metric.height);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = index;
+    }
   }
-  return y < 0 ? 0 : metrics.length - 1;
+
+  return best >= 0 ? best : null;
 }
 
 /** Nearest real period for a pointer position; spacer rows are skipped. */
@@ -70,7 +89,13 @@ export function periodAt(
   return null;
 }
 
-/** Same as `periodAt`, but measures the grid first. */
+/**
+ * Same as `periodAt`, but always measures the live grid.
+ *
+ * The rendered metrics come from a `ResizeObserver` and can lag one frame
+ * behind (or be empty before the first measurement). Pointer handlers must not
+ * use them or a stale grid teleports the target.
+ */
 export function periodAtPoint(
   grid: HTMLElement,
   rows: GridRow[],
