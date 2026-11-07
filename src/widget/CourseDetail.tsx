@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Session, Settings } from "../types";
 import { courseColor, hexToRgba } from "../courseColor";
 import { periodRangeLabel, sessionRange, sessionStartLabel } from "../scheduleUtils";
+import { Xmark } from "./icons";
 
 export interface DetailAnchor {
   /** Course card rect in screen px. */
@@ -22,12 +23,12 @@ interface CourseDetailProps {
   onClose: () => void;
 }
 
+const CLOSE_MS = 240;
+
 /**
- * Detail sheet that grows out of the clicked course card.
- *
- * The card is laid out at the origin, then a transform places it over the
- * source card at the source card's scale. The next frame animates that
- * transform to the centered rect, so the card visually expands into the sheet.
+ * Detail sheet that grows out of the clicked course card and shrinks back into
+ * it on close. The card is laid out at the origin and moved by a transform, so
+ * opening and closing are the same transition played in opposite directions.
  */
 export default function CourseDetail({
   session,
@@ -38,15 +39,36 @@ export default function CourseDetail({
   onClose
 }: CourseDetailProps) {
   const boxRef = useRef<HTMLDivElement | null>(null);
-  const [settled, setSettled] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const closed = useRef(false);
+
+  const requestClose = () => {
+    if (closed.current) return;
+    closed.current = true;
+    const box = boxRef.current;
+    if (!box) {
+      onClose();
+      return;
+    }
+    const { rect } = anchor;
+    const width = box.offsetWidth;
+    const height = box.offsetHeight;
+    box.style.transition = `transform ${CLOSE_MS}ms cubic-bezier(0.4, 0, 1, 1), opacity ${CLOSE_MS}ms ease`;
+    box.style.transform = `translate(${rect.left}px, ${rect.top}px) scale(${
+      rect.width / width
+    }, ${rect.height / height})`;
+    box.style.opacity = "0";
+    setClosing(true);
+    window.setTimeout(onClose, CLOSE_MS);
+  };
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") requestClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  });
 
   useLayoutEffect(() => {
     const box = boxRef.current;
@@ -70,7 +92,6 @@ export default function CourseDetail({
         "transform 340ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease";
       box.style.transform = `translate(${targetX}px, ${targetY}px) scale(1, 1)`;
       box.style.opacity = "1";
-      setSettled(true);
     });
     return () => cancelAnimationFrame(frame);
   }, [anchor]);
@@ -94,8 +115,8 @@ export default function CourseDetail({
   return (
     <>
       <div
-        className="detail-scrim"
-        onClick={onClose}
+        className={`detail-scrim${closing ? " closing" : ""}`}
+        onClick={requestClose}
         style={{
           left: bounds.left,
           top: bounds.top,
@@ -106,7 +127,7 @@ export default function CourseDetail({
       />
       <div
         ref={boxRef}
-        className={`detail-card${settled ? " settled" : ""}`}
+        className="detail-card"
         onClick={(event) => event.stopPropagation()}
         style={
           {
@@ -121,8 +142,8 @@ export default function CourseDetail({
       >
         <div className="detail-head">
           <span className="detail-title">{session.course}</span>
-          <button className="detail-close" onClick={onClose} aria-label="关闭">
-            ×
+          <button className="detail-close" onClick={requestClose} aria-label="关闭">
+            <Xmark width={11} height={11} />
           </button>
         </div>
         <div className="detail-rows">

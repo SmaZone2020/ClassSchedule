@@ -22,6 +22,7 @@ pub fn run() {
             commands::get_settings,
             commands::update_settings,
             commands::get_schedule,
+            commands::save_schedule,
             commands::import_schedule_from_path,
             commands::export_template,
             commands::open_settings_window,

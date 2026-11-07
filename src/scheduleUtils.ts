@@ -59,6 +59,20 @@ export function addDays(iso: string, days: number): string {
   return isoDate(date);
 }
 
+/** Compact `M.D` label used by the header date range. */
+export function shortDate(iso: string): string {
+  const parts = iso.split("-");
+  if (parts.length < 3) return iso;
+  return `${Number(parts[1])}.${Number(parts[2])}`;
+}
+
+/** `11.7` for a single day, `11.7-11.11` for a range. */
+export function dateRangeLabel(days: Day[]): string {
+  if (!days.length) return "";
+  if (days.length === 1) return shortDate(days[0].date);
+  return `${shortDate(days[0].date)}-${shortDate(days[days.length - 1].date)}`;
+}
+
 export function weekdayName(iso: string): string {
   const date = new Date(`${iso}T00:00:00`);
   return WEEKDAY_ORDER[(date.getDay() + 6) % 7] ?? "周一";

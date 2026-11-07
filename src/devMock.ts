@@ -211,6 +211,10 @@ export function installDevMock() {
         return data.settings;
       }
       if (command === "set_layout_columns") return null;
+      if (command === "save_schedule") {
+        data.schedule = (args.schedule as AppData["schedule"]) ?? null;
+        return data.schedule;
+      }
       if (command === "import_schedule_from_path") {
         return {
           report: { valid: true, error: null, meta: null, weeks: 3, sessions: 9, warnings: [] },

@@ -34,7 +34,11 @@ export interface WeekGrid {
  * thin spacer (keeping one spacer between two occupied blocks so gaps stay
  * readable). Without it all configured periods get equal height.
  */
-export function buildWeekGrid(days: Day[], settings: Settings): WeekGrid {
+export function buildWeekGrid(
+  days: Day[],
+  settings: Settings,
+  full = false
+): WeekGrid {
   const periods = [...settings.periods].sort((a, b) => a.index - b.index);
   const periodNumbers = periods.map((item) => item.index);
 
@@ -62,7 +66,7 @@ export function buildWeekGrid(days: Day[], settings: Settings): WeekGrid {
     })
   );
 
-  const rows = settings.panel.compact
+  const rows = !full && settings.panel.compact
     ? compactRows(periodNumbers, occupied)
     : periodNumbers.map((period) => ({ period, weight: 1 }));
 

@@ -82,6 +82,20 @@ pub fn set_layout_columns(app: AppHandle, columns: u32) -> Result<(), String> {
 }
 
 #[command]
+pub fn save_schedule(app: AppHandle, schedule: Value) -> Result<Value, String> {
+    let text = serde_json::to_string(&schedule).map_err(|e| e.to_string())?;
+    let value = crate::schedule::validate(&text)?;
+    storage::store_schedule(&app, &value)?;
+    // Only the settings window mirrors the schedule; the widget already holds
+    // the edited copy and must not have its week/day focus reset.
+    use tauri::Emitter;
+    if let Some(window) = app.get_webview_window("settings") {
+        let _ = window.emit("schedule-changed", &value);
+    }
+    Ok(value)
+}
+
+#[command]
 pub fn get_schedule(app: AppHandle) -> Result<Option<Value>, String> {
     Ok(storage::load_schedule(&app))
 }

@@ -48,7 +48,7 @@ export function hexToRgba(hex: string, alpha: number): string {
 export function courseVars(color: string): React.CSSProperties {
   return {
     "--course-color": color,
-    "--course-soft": hexToRgba(color, 0.22),
+    "--course-soft": hexToRgba(color, 0.4),
     "--course-glow": hexToRgba(color, 0.08)
   } as React.CSSProperties;
 }
