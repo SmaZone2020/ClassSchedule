@@ -68,6 +68,13 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+/* Sweeping a free range before the "new course" form opens. */
+.slot-preview.selecting {
+  border: 1.5px solid var(--accent);
+  background: rgba(var(--panel-tint), 0.3);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
 
 /* Delete control, top-left, only while hovering the card. */
 .edit-delete {

@@ -334,6 +334,11 @@ export default function Widget() {
           settings={settings}
           weekday={editor.editor.weekday}
           date={editor.editor.date}
+          initialRange={
+            editor.editor.ref
+              ? undefined
+              : { start: editor.editor.slot.start, end: editor.editor.slot.end }
+          }
           bounds={bounds()}
           radius={settings.panel.radius * settings.scale}
           onSave={editor.save}

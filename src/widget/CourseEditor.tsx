@@ -18,6 +18,8 @@ interface CourseEditorProps {
   settings: Settings;
   weekday: string;
   date: string;
+  /** Pre-filled range for a new course (click / swept selection / right click). */
+  initialRange?: { start: number; end: number };
   bounds: DOMRect;
   radius: number;
   /** Returns an error message when the range collides with another course. */
@@ -32,13 +34,14 @@ export default function CourseEditor({
   settings,
   weekday,
   date,
+  initialRange,
   bounds,
   radius,
   onSave,
   onDelete,
   onClose
 }: CourseEditorProps) {
-  const range = sessionRange(session ?? { periods: null });
+  const range = sessionRange(session ?? { periods: null }) ?? initialRange ?? null;
   const [course, setCourse] = useState(session?.course ?? "");
   const [courseShort, setCourseShort] = useState(session?.courseShort ?? "");
   const [location, setLocation] = useState(session?.location ?? "");

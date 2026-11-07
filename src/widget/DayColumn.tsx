@@ -69,6 +69,8 @@ export default function DayColumn({
   const gridRef = useRef<HTMLDivElement | null>(null);
   const height = useElementHeight(gridRef);
   const [hoverPeriod, setHoverPeriod] = useState<number | null>(null);
+  const [selection, setSelection] = useState<{ start: number; end: number } | null>(null);
+  const selecting = useRef<{ anchor: number; detach: () => void } | null>(null);
 
   const isToday = day.date === today;
   const metrics = rowMetrics(model.rows, height, settings.panel.gap);
@@ -85,7 +87,7 @@ export default function DayColumn({
     : null;
 
   const hoverBlock =
-    editing && hoverPeriod !== null && !preview
+    editing && hoverPeriod !== null && !preview && !selection
       ? blockAt(metrics, rowOfPeriod(model.rows, hoverPeriod) ?? 0, 1)
       : null;
 
@@ -108,8 +110,12 @@ export default function DayColumn({
     if (target.closest(".course-card")) return;
     const grid = gridRef.current;
     if (!grid) return;
-    const period = periodAt(grid, model.rows, metrics, event.clientY) ?? bounds.min;
-    onCreateAt({ date: day.date, start: period, end: period });
+    const period = periodAtPoint(grid, model.rows, event.clientY) ?? bounds.min;
+    // A spacer row can map to an occupied period; only offer "add" where the
+    // slot is actually free, otherwise just swallow the browser menu.
+    event.preventDefault();
+    if (!rangeFree(day.sessions, period, period)) return;
+    onContextMenu({ kind: "slot", slot: { date: day.date, start: period, end: period } }, event);
   };
 
   return (
@@ -134,7 +140,7 @@ export default function DayColumn({
         style={{ gridTemplateRows: model.template }}
         onPointerMove={handleMove}
         onPointerLeave={() => setHoverPeriod(null)}
-        onClick={handleClick}
+        onContextMenu={handleContextMenu}
       >
         {cards.length === 0 && loose.length === 0 && !editing && (
           <div className="empty-day" style={{ gridRow: "1 / -1" }}>
