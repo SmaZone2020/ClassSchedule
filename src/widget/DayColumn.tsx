@@ -9,7 +9,7 @@ import {
   sessionRange,
   sessionStartLabel
 } from "../scheduleUtils";
--import { blockAt, periodAt, periodBounds, rowOfPeriod, rowMetrics } from "./gridHit";
+import { blockAt, periodAtPoint, periodBounds, rowOfPeriod, rowMetrics } from "./gridHit";
 import { useElementHeight } from "./useElementHeight";
 import EditCard from "./EditCard";
 import type { SessionRef } from "../scheduleEdit";
