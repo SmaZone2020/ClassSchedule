@@ -6,7 +6,6 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle
 } from "@/components/motion/card";
@@ -93,7 +92,6 @@ export function ScheduleSection({ schedule, configDir, onChanged }: ScheduleSect
     <Card>
       <CardHeader>
         <CardTitle as="h2">课表数据</CardTitle>
-        <CardDescription>导入 JSON 课表，或导出一份可编辑的模板。</CardDescription>
         <CardAction>
           <span className="text-xs text-muted-foreground">{schedule ? "已导入" : "空"}</span>
         </CardAction>
