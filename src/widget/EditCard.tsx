@@ -46,6 +46,7 @@ export default function EditCard({
   now,
   rows,
   metrics,
+  limitEnd,
   dragging,
   onOpen,
   onDelete,
