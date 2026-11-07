@@ -5,7 +5,8 @@ import { baseSize, shadowPad } from "../settingsDefaults";
 import {
   addDays,
   currentPeriod,
-  isoDate
+  isoDate,
+  weekHasSessions
 } from "../scheduleUtils";
 import LiquidGlassPanel from "./LiquidGlassPanel";
 import CourseDetail, { detailAnchor, type DetailAnchor } from "./CourseDetail";
@@ -16,13 +17,19 @@ import WidgetHeader from "./WidgetHeader";
 import Timetable from "./Timetable";
 import CourseEditor from "./CourseEditor";
 import { useWidgetData } from "./useWidgetData";
-import { useWeekModel, isEmptyWeek } from "./useWeekModel";
+import { useWeekModel } from "./useWeekModel";
 import { useScheduleEditor } from "./useScheduleEditor";
 import type { Slot } from "./DayColumn";
+import { useWeather } from "./useWeather";
+import { useDailyWord } from "./useDailyWord";
 
 export default function Widget() {
   const { settings, schedule, setSchedule, wallpaper, rect, animRect, monitors, now } =
     useWidgetData();
+  // The finished-week screen is the only consumer, but the hooks stay at the top
+  // level so the weather is already warm when the last class ends.
+  const weather = useWeather();
+  const { word, loading: wordLoading, next: nextWord } = useDailyWord();
   const [weekOffset, setWeekOffset] = useState(0);
   const [dayOffset, setDayOffset] = useState(0);
   const [viewDate, setViewDate] = useState<string | null>(null);
@@ -31,6 +38,9 @@ export default function Widget() {
   const [detail, setDetail] = useState<
     { session: Parameters<typeof detailAnchor>[1]; weekday: string; date: string; anchor: DetailAnchor } | null
   >(null);
+  // "本周课程已全部结束" can be dismissed for a single look at the finished
+  // week. Leaving the week (or switching day view) brings the notice back.
+  const [revealFinished, setRevealFinished] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const wheelAt = useRef(0);
   const goDayRef = useRef<(delta: 1 | -1) => void>(() => {});
@@ -62,7 +72,11 @@ export default function Widget() {
     editing
   });
 
-  const empty = isEmptyWeek(model);
+  // A finished week hides the grid, but edit mode always needs the full grid so
+  // courses can be moved or added after the last class of the week.
+  const finishedNotice = Boolean(model?.finished) && !revealFinished && !editing;
+  const empty =
+    !model || (!editing && (finishedNotice || !model.week || !weekHasSessions(model.week)));
   const displayColumns = empty ? 1 : (model?.columns ?? 7);
 
   useEffect(() => {
@@ -73,6 +87,10 @@ export default function Widget() {
     setViewDate(null);
     setDayOffset(0);
   }, [settings?.daysMode]);
+
+  useEffect(() => {
+    setRevealFinished(false);
+  }, [weekOffset, dayOffset, viewDate]);
 
   const commit = (next: Schedule) => {
     setSchedule(next);
@@ -253,6 +271,12 @@ export default function Widget() {
         returnHead={returnHead}
         dragPreview={editor.dragPreview}
         dragRef={editor.dragRef}
+        revealFinished={revealFinished || editing}
+        onRevealFinished={() => setRevealFinished(true)}
+        weather={weather}
+        word={word}
+        wordLoading={wordLoading}
+        onNextWord={nextWord}
         onDayHead={(date) => {
           if (returnHead) {
             setViewDate(null);

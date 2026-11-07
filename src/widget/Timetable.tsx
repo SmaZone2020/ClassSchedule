@@ -3,6 +3,9 @@ import type { WeekModel } from "./useWeekModel";
 import { weekHasSessions } from "../scheduleUtils";
 import DayColumn, { type Slot } from "./DayColumn";
 import type { SessionRef } from "../scheduleEdit";
+import type { WeatherInfo } from "./weatherInfo";
+import type { DailyWord } from "./useDailyWord";
+import WeekFinished from "./WeekFinished";
 
 interface TimetableProps {
   settings: Settings;
@@ -19,6 +22,13 @@ interface TimetableProps {
   returnHead: boolean;
   dragPreview: Slot | null;
   dragRef: SessionRef | null;
+  /** One-off look at a week whose classes have all ended. */
+  revealFinished: boolean;
+  onRevealFinished: () => void;
+  weather: WeatherInfo | null;
+  word: DailyWord | null;
+  wordLoading: boolean;
+  onNextWord: () => void;
   onDayHead: (date: string) => void;
   onOpenDetail: (
     session: Session,
@@ -48,6 +58,12 @@ export default function Timetable({
   returnHead,
   dragPreview,
   dragRef,
+  revealFinished,
+  onRevealFinished,
+  weather,
+  word,
+  wordLoading,
+  onNextWord,
   onDayHead,
   onOpenDetail,
   onOpenEditor,
@@ -56,12 +72,17 @@ export default function Timetable({
   onDragStart,
   onCreateAt
 }: TimetableProps) {
-  if (model.finished) {
+  if (model.finished && !revealFinished) {
     return (
-      <div className="week-break" key={`done-${model.index}`}>
-        <strong>本周课程已全部结束</strong>
-        <span>好好休息，下周再见</span>
-      </div>
+      <WeekFinished
+        key={`done-${model.index}`}
+        weather={weather}
+        now={now}
+        word={word}
+        wordLoading={wordLoading}
+        onNextWord={onNextWord}
+        onReveal={onRevealFinished}
+      />
     );
   }
 

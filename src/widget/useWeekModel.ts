@@ -6,8 +6,7 @@ import {
   sortedWeeks,
   visibleDays,
   weekDays,
-  weekFinished,
-  weekHasSessions
+  weekFinished
 } from "../scheduleUtils";
 import { buildWeekGrid } from "../periodGrid";
 
@@ -84,7 +83,3 @@ export function useWeekModel({
 }
 
 export type WeekModel = NonNullable<ReturnType<typeof useWeekModel>>;
-
-export function isEmptyWeek(model: WeekModel | null): boolean {
-  return !model || model.finished || !model.week || !weekHasSessions(model.week);
-}
