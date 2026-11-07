@@ -17,6 +17,10 @@ const plan = {
   button: [
     "components/motion/button/index.tsx",
     "components/motion/button/base.tsx",
+    "components/motion/button/magnetic.tsx",
+    "components/motion/button/metallic.tsx",
+    "components/motion/button/stateful.tsx",
+    "components/motion/magnetic.tsx",
     "lib/ease.ts",
     "lib/hooks/use-hover-capable.ts",
     "lib/utils.ts"
@@ -32,7 +36,29 @@ const plan = {
   ],
   input: ["components/motion/input.tsx"],
   tabs: ["components/motion/tabs.tsx"],
-  card: ["components/motion/card.tsx"]
+  card: ["components/motion/card.tsx"],
+  "line-chart": [
+    "components/charts/line-chart.tsx",
+    "components/charts/line-chart/context.tsx",
+    "components/charts/line-chart/legend.tsx",
+    "components/charts/line-chart/plot.tsx",
+    "components/charts/line-chart/tooltip.tsx",
+    "components/charts/xy/data-table.tsx",
+    "components/charts/xy/model.ts",
+    "components/charts/xy/path.ts",
+    "components/charts/xy/scale.ts",
+    "components/charts/xy/axis.tsx",
+    "components/charts/xy/inspector.tsx",
+    "components/charts/xy/use-points.ts",
+    "components/charts/xy/use-width.ts",
+    "components/charts/xy/use-inspection.ts",
+    "components/charts/xy/legend.tsx",
+    "components/charts/xy/tooltip-content.tsx",
+    "components/motion/text-shimmer.tsx",
+    "components/motion/tooltip-surface.tsx",
+    "components/motion/number-ticker.tsx",
+    "lib/text-shimmer.ts"
+  ]
 };
 
 const root = process.cwd();
