@@ -62,7 +62,16 @@ jobs:
             throw "no executable found in src-tauri/target/release"
           }
 
-          Write-Host "portable binary: $($exe.Name) ($([math]::Round($exe.Length / 1MB, 1)) MB)"
+          # A console subsystem binary pops up a terminal window on launch, which
+          # is exactly what `windows_subsystem = "windows"` in main.rs prevents.
+          $bytes = [System.IO.File]::ReadAllBytes($exe.FullName)
+          $peOffset = [BitConverter]::ToInt32($bytes, 0x3C)
+          $subsystem = [BitConverter]::ToUInt16($bytes, $peOffset + 24 + 68)
+          if ($subsystem -ne 2) {
+            throw "$($exe.Name) uses PE subsystem $subsystem; expected 2 (WINDOWS_GUI). A console window would appear on launch."
+          }
+
+          Write-Host "portable binary: $($exe.Name) ($([math]::Round($exe.Length / 1MB, 1)) MB), subsystem: GUI"
           Copy-Item $exe.FullName "release/ClassScheduleWidget-portable.exe"
 
           $installers = @(
