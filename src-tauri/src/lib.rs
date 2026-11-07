@@ -1,5 +1,6 @@
 mod autostart;
 mod commands;
+mod daily_word;
 mod fonts;
 mod geometry;
 mod models;
@@ -54,6 +55,7 @@ pub fn run() {
         .manage(tray::AppState::new(Settings::default()))
         .manage(xiqueer::XiqueerState::default())
         .manage(weather::WeatherState::default())
+        .manage(daily_word::DailyWordState::default())
         .invoke_handler(tauri::generate_handler![
             commands::get_app_data,
             commands::get_settings,
@@ -85,6 +87,7 @@ pub fn run() {
             xiqueer::xiqueer_login,
             xiqueer::xiqueer_import,
             weather::get_weather,
+            daily_word::get_daily_word
         ])        .on_window_event(|window, event| {
             if window.label() == "settings" {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event {
