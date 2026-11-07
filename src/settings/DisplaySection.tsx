@@ -25,7 +25,7 @@ export function DisplaySection({ settings, onChange }: DisplaySectionProps) {
               onChange({ daysMode: event.target.value as Settings["daysMode"] })
             }
           >
-            <option value="auto">自动（周末无课只显示 5 天）</option>
+            <option value="auto">自动</option>
             <option value="5">固定 5 天</option>
             <option value="7">固定 7 天</option>
             <option value="today">仅显示当天课表</option>
@@ -39,9 +39,21 @@ export function DisplaySection({ settings, onChange }: DisplaySectionProps) {
               onChange({ align: event.target.value as Settings["align"] })
             }
           >
-            <option value="auto">自动（按组件在屏幕左右侧判断）</option>
-            <option value="left">左对齐（宽度变化时向左收缩）</option>
-            <option value="right">右对齐（宽度变化时向右收缩）</option>
+            <option value="auto">自动</option>
+            <option value="left">左对齐</option>
+            <option value="right">右对齐</option>
+          </select>
+        </div>
+        <div className="settings-row">
+          <label>课程名称</label>
+          <select
+            value={settings.panel.titleMode}
+            onChange={(event) =>
+              panelPatch({ titleMode: event.target.value as "full" | "short" })
+            }
+          >
+            <option value="full">完整名称</option>
+            <option value="short">使用简称</option>
           </select>
         </div>
         <div className="settings-row">
@@ -50,8 +62,8 @@ export function DisplaySection({ settings, onChange }: DisplaySectionProps) {
             value={settings.style}
             onChange={(event) => onChange({ style: event.target.value as Settings["style"] })}
           >
-            <option value="frosted">磨砂（桌面壁纸对齐模糊）</option>
-            <option value="liquid">液态玻璃（liquid glass）</option>
+            <option value="frosted">磨砂</option>
+            <option value="liquid">液态玻璃</option>
           </select>
         </div>
         <div className="settings-row">
@@ -111,6 +123,27 @@ export function DisplaySection({ settings, onChange }: DisplaySectionProps) {
           />
         </div>
         <div className="settings-row">
+          <label>阴影强度 {Math.round(panel.shadow * 100)}%</label>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={panel.shadow}
+            onChange={(event) => panelPatch({ shadow: Number(event.target.value) })}
+          />
+        </div>
+        <div className="settings-row">
+          <label>阴影大小 {panel.shadowSize}px</label>
+          <input
+            type="range"
+            min={0}
+            max={24}
+            value={panel.shadowSize}
+            onChange={(event) => panelPatch({ shadowSize: Number(event.target.value) })}
+          />
+        </div>
+        <div className="settings-row">
           <label>卡片间距 {panel.gap}px</label>
           <input
             type="range"
@@ -139,6 +172,14 @@ export function DisplaySection({ settings, onChange }: DisplaySectionProps) {
           />
         </label>
         <label className="settings-row">
+          <span>压缩无课节次</span>
+          <input
+            type="checkbox"
+            checked={panel.compact}
+            onChange={(event) => panelPatch({ compact: event.target.checked })}
+          />
+        </label>
+        <label className="settings-row">
           <span>显示标题栏</span>
           <input
             type="checkbox"
@@ -153,9 +194,6 @@ export function DisplaySection({ settings, onChange }: DisplaySectionProps) {
           恢复默认样式
         </button>
       </div>
-      <p className="settings-hint">
-        关闭鼠标穿透后，组件标题栏会出现 ‹ › 按钮，可手动切换上一周/下一周；开启穿透时自动回到本周。对齐模式决定从 7 天收窄到 5 天或 1 天时，课表向哪一侧收缩。
-      </p>
     </div>
   );
 }

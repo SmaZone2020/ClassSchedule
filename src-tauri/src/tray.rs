@@ -101,13 +101,13 @@ pub fn apply_widget_state(app: &AppHandle, settings: &Settings) {
     let columns = app.state::<AppState>().columns();
     let _ = window_ops::apply_position(&window, settings, columns);
     let _ = window_ops::apply_click_through(&window, settings.click_through);
-    pin_to_desktop(&window);
+    pin_to_desktop(&window, settings.desktop_pin);
 }
 
-pub fn pin_to_desktop(window: &tauri::WebviewWindow) {
+pub fn pin_to_desktop(window: &tauri::WebviewWindow, enabled: bool) {
     #[cfg(windows)]
     if let Ok(hwnd) = window.hwnd() {
-        platform::pin_below_normal_windows(hwnd.0 as isize);
+        platform::set_desktop_pin(hwnd.0 as isize, enabled);
     }
 }
 

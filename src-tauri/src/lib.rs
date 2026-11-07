@@ -67,7 +67,7 @@ pub fn run() {
             if settings.widget_visible {
                 window_ops::apply_position(&widget, &settings, 7).ok();
                 window_ops::apply_click_through(&widget, settings.click_through).ok();
-                tray::pin_to_desktop(&widget);
+                tray::pin_to_desktop(&widget, settings.desktop_pin);
                 let _ = widget.show();
             }
 

@@ -1,5 +1,5 @@
 import type { MonitorInfo, Settings } from "../types";
-import { baseSize, slotWidth } from "../settingsDefaults";
+import { panelSize } from "../settingsDefaults";
 
 interface PositionSectionProps {
   settings: Settings;
@@ -15,28 +15,15 @@ export function PositionSection({ settings, monitors, onChange }: PositionSectio
     monitors.find((item) => item.isPrimary) ??
     monitors[0];
   const columns = COLUMNS[settings.daysMode] ?? 5;
-  const size = baseSize(columns);
-  const slot = slotWidth() * settings.scale;
+  const size = panelSize(columns);
   const width = size.width * settings.scale;
   const height = size.height * settings.scale;
 
   const monitorWidth = monitor?.width ?? 1920;
   const monitorHeight = monitor?.height ?? 1080;
 
-  const room = Math.max(0, slot - width);
-  const autoRight =
-    settings.position.x + slot / 2 > monitorWidth / 2;
-  const shift =
-    settings.align === "right"
-      ? room
-      : settings.align === "auto" && autoRight
-        ? room
-        : 0;
-
   const maxX = Math.max(0, Math.round(monitorWidth - width));
   const maxY = Math.max(0, Math.round(monitorHeight - height));
-  const actualX = Math.min(Math.max(0, settings.position.x + shift), maxX);
-  const actualY = Math.min(Math.max(0, settings.position.y), maxY);
 
   return (
     <div className="settings-card">
@@ -123,6 +110,14 @@ export function PositionSection({ settings, monitors, onChange }: PositionSectio
           </span>
         </div>
         <div className="settings-row">
+          <label>始终置底</label>
+          <input
+            type="checkbox"
+            checked={settings.desktopPin}
+            onChange={(event) => onChange({ desktopPin: event.target.checked })}
+          />
+        </div>
+        <div className="settings-row">
           <label>鼠标穿透</label>
           <input
             type="checkbox"
@@ -140,9 +135,7 @@ export function PositionSection({ settings, monitors, onChange }: PositionSectio
         </div>
       </div>
       <p className="settings-hint">
-        X/Y 是 7 天布局的左上角锚点（逻辑像素）。当前显示 {columns} 天，组件尺寸{" "}
-        {Math.round(width)}×{Math.round(height)}，实际左上角 ({Math.round(actualX)},{" "}
-        {Math.round(actualY)})。对齐模式决定从 7 天收窄时向哪一侧收缩：左对齐保持左边缘不动，右对齐保持右边缘不动，自动按组件在屏幕左右侧判断。
+        X/Y 是 7 天布局的左上角锚点，逻辑像素。
       </p>
     </div>
   );

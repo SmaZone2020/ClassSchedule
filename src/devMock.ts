@@ -32,7 +32,25 @@ const mockSchedule: Schedule = {
         { weekday: "周二", date: "2026-11-03", sessions: [] },
         { weekday: "周三", date: "2026-11-04", sessions: [] },
         { weekday: "周四", date: "2026-11-05", sessions: [] },
-        { weekday: "周五", date: "2026-11-06", sessions: [] }
+        { weekday: "周五", date: "2026-11-06", sessions: [] },
+        {
+          weekday: "周六",
+          date: "2026-11-07",
+          sessions: [
+            {
+              periods: { start: 2, end: 2 },
+              course: "C语言程序设计",
+              courseShort: "C语言",
+              location: "示例校区 立行楼 6103 机房"
+            },
+            {
+              periods: { start: 5, end: 6 },
+              course: "电路分析基础",
+              courseShort: "电路分析",
+              location: "示例校区 2号实训厂房 一层东侧"
+            }
+          ]
+        }
       ]
     },
     {
@@ -141,7 +159,7 @@ export function installDevMock() {
   if ("__TAURI_INTERNALS__" in window) return;
 
   const data: AppData = {
-    settings: defaultSettings,
+    settings: { ...defaultSettings, clickThrough: false },
     schedule: mockSchedule,
     scheduleError: null,
     monitors: [

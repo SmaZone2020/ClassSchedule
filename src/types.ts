@@ -9,6 +9,10 @@ export interface PanelStyle {
   opacity: number;
   blur: number;
   gap: number;
+  shadow: number;
+  shadowSize: number;
+  titleMode: "full" | "short";
+  compact: boolean;
   showLocation: boolean;
   showPeriodTime: boolean;
   showHeader: boolean;

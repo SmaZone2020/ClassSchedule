@@ -15,6 +15,10 @@ export const defaultSettings: Settings = {
     opacity: 0.62,
     blur: 18,
     gap: 6,
+    shadow: 0.9,
+    shadowSize: 14,
+    titleMode: "full",
+    compact: true,
     showLocation: true,
     showPeriodTime: true,
     showHeader: true
@@ -47,7 +51,8 @@ export function mergeSettings(raw: unknown): Settings {
   };
 }
 
-/** Unscaled base size, must match `src-tauri/src/window_ops.rs`. */
+/* Layout constants — must match `src-tauri/src/window_ops.rs`. */
+
 export const DAY_WIDTH = 80;
 export const PANEL_PAD = 14;
 export const PANEL_GAP = 6;
@@ -55,7 +60,19 @@ export const MULTI_HEIGHT = 420;
 export const TODAY_WIDTH = 320;
 export const TODAY_HEIGHT = 380;
 
-export function baseSize(columns: number): { width: number; height: number } {
+/**
+ * Transparent margin around the panel so the drop shadow has room to render.
+ * Without it the shadow is clipped by the window edge and only the rounded
+ * corners look shadowed.
+ */
+
+/** Transparent margin around the panel so the drop shadow has room to render. */
+export function shadowPad(shadowSize: number): number {
+  return Math.min(Math.max(Math.ceil(shadowSize * 2.6 + 8), 20), 72);
+}
+
+/** Panel (visible glass) size for the given visible column count. */
+export function panelSize(columns: number): { width: number; height: number } {
   const cols = Math.min(Math.max(columns, 1), 7);
   if (cols <= 1) return { width: TODAY_WIDTH, height: TODAY_HEIGHT };
   return {
@@ -64,6 +81,16 @@ export function baseSize(columns: number): { width: number; height: number } {
   };
 }
 
-export function slotWidth(): number {
-  return baseSize(7).width;
+/** Native window size, i.e. the panel plus the shadow margin. */
+export function baseSize(
+  columns: number,
+  shadowSize = 14
+): { width: number; height: number } {
+  const panel = panelSize(columns);
+  const pad = shadowPad(shadowSize);
+  return { width: panel.width + pad * 2, height: panel.height + pad * 2 };
+}
+
+export function slotWidth(shadowSize = 14): number {
+  return baseSize(7, shadowSize).width;
 }

@@ -64,11 +64,17 @@ export function weekdayName(iso: string): string {
   return WEEKDAY_ORDER[(date.getDay() + 6) % 7] ?? "周一";
 }
 
-export function visibleDays(week: Week | null, settings: Settings, now: Date = new Date()): Day[] {
+/** All seven days of the week, in Monday-first order, gaps filled in. */
+export function weekDays(week: Week | null): Day[] {
   if (!week) return [];
-  const sorted = withFullWeek(week).sort(
+  return withFullWeek(week).sort(
     (a, b) => WEEKDAY_ORDER.indexOf(a.weekday) - WEEKDAY_ORDER.indexOf(b.weekday)
   );
+}
+
+export function visibleDays(week: Week | null, settings: Settings, now: Date = new Date()): Day[] {
+  if (!week) return [];
+  const sorted = weekDays(week);
 
   if (settings.daysMode === "today") {
     const today = isoDate(now);
@@ -174,5 +180,8 @@ export function periodRangeLabel(session: { periods: unknown }): string {
   const raw = session.periods;
   if (typeof raw === "string") return raw;
   const range = sessionRange(session);
-  return range ? `第${range.start}-${range.end}节` : "";
+  if (!range) return "";
+  return range.start === range.end
+    ? `第${range.start}节`
+    : `第${range.start}-${range.end}节`;
 }

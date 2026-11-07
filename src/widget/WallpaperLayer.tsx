@@ -1,4 +1,5 @@
 import type { MonitorInfo, Settings, WallpaperInfo, WidgetRect } from "../types";
+import { shadowPad } from "../settingsDefaults";
 
 interface WallpaperLayerProps {
   wallpaper: WallpaperInfo;
@@ -36,10 +37,10 @@ function backgroundSize(style: WallpaperInfo["style"]): string {
 /**
  * Paints the desktop wallpaper crop behind the widget.
  *
- * The photo element is exactly monitor-sized and offset by the widget's screen
+ * The photo element is exactly monitor-sized and offset by the panel's screen
  * position, so it lines up pixel-for-pixel with the real desktop wallpaper. A
- * padded wrapper carries the blur so the filter never fades at the visible
- * edge. Only this layer is blurred; the desktop itself is untouched.
+ * padded wrapper carries the blur so the filter never fades at a visible edge.
+ * Only this layer is blurred; the desktop itself is untouched.
  */
 export default function WallpaperLayer({
   wallpaper,
@@ -49,17 +50,27 @@ export default function WallpaperLayer({
 }: WallpaperLayerProps) {
   if (!wallpaper.dataUrl) return null;
 
+  const scale = Math.max(settings.scale, 0.1);
+  const pad = shadowPad(settings.panel.shadowSize) * scale;
   const blur = Math.max(0, settings.panel.blur);
   const bleed = Math.ceil(blur * 2 + 8);
-  const radius = settings.panel.radius * settings.scale;
+  const radius = settings.panel.radius * scale;
+
+  // `rect` is the window; the visible panel starts one shadow margin inside it.
+  const panelX = rect.x + pad;
+  const panelY = rect.y + pad;
 
   return (
-    <div className="wallpaper-clip" style={{ borderRadius: `${radius}px` }} aria-hidden="true">
+    <div
+      className="wallpaper-clip"
+      style={{ left: pad, top: pad, right: pad, bottom: pad, borderRadius: `${radius}px` }}
+      aria-hidden="true"
+    >
       <div
         className="wallpaper-blur"
         style={{
-          left: -rect.x - bleed,
-          top: -rect.y - bleed,
+          left: -panelX - bleed,
+          top: -panelY - bleed,
           width: monitor.width + bleed * 2,
           height: monitor.height + bleed * 2,
           filter: blur > 0 ? `blur(${blur}px) saturate(140%)` : "saturate(140%)"

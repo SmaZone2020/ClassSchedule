@@ -46,6 +46,7 @@ pub fn update_settings(app: AppHandle, mut settings: Settings) -> Result<Setting
             apply_layout(&app, &widget, &settings)?;
         }
         window_ops::apply_click_through(&widget, settings.click_through)?;
+        tray::pin_to_desktop(&widget, settings.desktop_pin);
     }
     tray::apply_widget_state(&app, &settings);
     window_ops::send_settings(&app, &settings);
@@ -58,8 +59,9 @@ fn apply_layout(
     settings: &Settings,
 ) -> Result<(), String> {
     let columns = app.state::<AppState>().columns();
-    let rect = window_ops::apply_position(widget, settings, columns)?;
-    window_ops::emit_layout(app, &rect);
+    // The tween emits `layout-changed` when it lands, so the front end can track
+    // the intermediate frames without a jump to the final rect first.
+    window_ops::apply_position_animated(app, widget, settings, columns)?;
     Ok(())
 }
 
