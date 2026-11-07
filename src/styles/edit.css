@@ -195,15 +195,13 @@
   border-color: transparent;
 }
 
-/* Course editor form. */
+/* Course editor form: the surface only, beUI owns every control. */
 .editor-card {
   position: fixed;
   width: 300px;
   box-sizing: border-box;
   padding: 14px 16px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  overflow-y: auto;
   border-radius: 18px;
   color: var(--text);
   background: rgba(var(--panel-tint), 0.96);
@@ -244,87 +242,8 @@
   color: var(--text-dim);
 }
 
-.editor-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.editor-error {
+  margin: 0;
   font-size: 10.5px;
-  color: var(--text-dim);
-}
-
-.editor-field input,
-.editor-field select {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 6px 8px;
-  font-size: 11.5px;
-  font-family: inherit;
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--panel-border);
-  border-radius: 8px;
-  outline: none;
-  transition: border-color 160ms ease, background-color 160ms ease;
-}
-
-.editor-field input:focus,
-.editor-field select:focus {
-  border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.editor-periods {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.editor-dash {
-  color: var(--text-dim);
-}
-
-.editor-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
-}
-
-.editor-spacer {
-  flex: 1;
-}
-
-.editor-btn {
-  padding: 5px 12px;
-  font-size: 11px;
-  font-family: inherit;
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid var(--panel-border);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 160ms ease, transform 160ms ease;
-}
-
-.editor-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.editor-btn:active {
-  transform: scale(0.96);
-}
-
-.editor-btn.primary {
-  color: #fff;
-  background: var(--accent);
-  border-color: transparent;
-}
-
-.editor-btn.primary:hover {
-  filter: brightness(1.08);
-}
-
-.editor-btn.danger {
   color: #ff9d9d;
-  border-color: rgba(226, 74, 74, 0.45);
 }

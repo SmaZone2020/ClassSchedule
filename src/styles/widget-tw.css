@@ -1,0 +1,74 @@
+/*
+ * Tailwind v4 + beUI for the widget window.
+ *
+ * The widget window is the desktop-glass document, so preflight is NOT
+ * imported here: it would reset the hand-written glass layout. Only the theme
+ * and the utilities are loaded, plus a small reset scoped to the editor modal
+ * so beUI's native `<input>` / `<button>` controls start from a clean slate.
+ *
+ * Colours are mapped onto the widget's own CSS variables, so beUI components
+ * follow the light/dark glass palette instead of the settings window palette.
+ */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@theme {
+  --color-background: rgb(var(--panel-tint));
+  --color-foreground: var(--text);
+  --color-card: rgb(var(--panel-tint));
+  --color-card-foreground: var(--text);
+  --color-muted: var(--card-bg);
+  --color-muted-foreground: var(--text-dim);
+  --color-border: var(--panel-border);
+  --color-border-strong: rgba(255, 255, 255, 0.34);
+  --color-primary: var(--accent);
+  --color-primary-foreground: #ffffff;
+  --color-ring: var(--accent);
+  --color-destructive: #ff7b7b;
+  --color-success: #45d08a;
+
+  --font-sans: var(--app-font, ui-sans-serif, system-ui, sans-serif);
+}
+
+/* beUI charts paint with bare `var(--foreground)` / `var(--background)`. */
+:root {
+  --background: rgb(var(--panel-tint));
+  --foreground: var(--text);
+  --muted-foreground: var(--text-dim);
+  --ring: var(--accent);
+}
+
+@layer base {
+  .editor-card button,
+  .editor-card input,
+  .editor-card textarea,
+  .editor-card select {
+    font: inherit;
+    letter-spacing: inherit;
+  }
+
+  .editor-card button {
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .editor-card input,
+  .editor-card textarea {
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: inherit;
+  }
+
+  .editor-card input {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+}
