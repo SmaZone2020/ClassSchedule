@@ -1,14 +1,20 @@
 #![cfg(windows)]
 
+use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
+use std::sync::OnceLock;
+use std::time::Duration;
+
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::WindowsAndMessaging::{
-    SetWindowLongW, SetWindowPos, GWL_EXSTYLE, HWND_BOTTOM, HWND_NOTOPMOST, SWP_NOACTIVATE,
-    SWP_NOMOVE, SWP_NOSIZE, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT,
+    GetWindowLongW, SetWindowLongW, SetWindowPos, GWL_EXSTYLE, HWND_BOTTOM, HWND_NOTOPMOST,
+    SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT,
 };
 
-/// Keep the widget pinned to the desktop layer (below every normal window) or
-/// release it so it behaves like an ordinary floating window.
-pub fn set_desktop_pin(hwnd: isize, enabled: bool) {
+static PIN_HWND: AtomicIsize = AtomicIsize::new(0);
+static PIN_ENABLED: AtomicBool = AtomicBool::new(false);
+static KEEPER: OnceLock<()> = OnceLock::new();
+
+fn apply_pin(hwnd: isize, enabled: bool) {
     unsafe {
         let window = HWND(hwnd as _);
         let insert_after = if enabled { HWND_BOTTOM } else { HWND_NOTOPMOST };
@@ -24,8 +30,7 @@ pub fn set_desktop_pin(hwnd: isize, enabled: bool) {
 
         // Never show up in the taskbar. When unpinned the window may take focus
         // again, so the widget can be brought forward like any other window.
-        let style = windows::Win32::UI::WindowsAndMessaging::GetWindowLongW(window, GWL_EXSTYLE)
-            as u32;
+        let style = GetWindowLongW(window, GWL_EXSTYLE) as u32;
         let mut updated = style | WS_EX_TOOLWINDOW.0;
         updated = if enabled {
             updated | WS_EX_NOACTIVATE.0
@@ -36,10 +41,33 @@ pub fn set_desktop_pin(hwnd: isize, enabled: bool) {
     }
 }
 
-pub fn set_click_through(hwnd: isize, enabled: bool) {    unsafe {
-        let style =
-            windows::Win32::UI::WindowsAndMessaging::GetWindowLongW(HWND(hwnd as _), GWL_EXSTYLE)
-                as u32;
+/// Keep the widget pinned to the desktop layer (below every normal window).
+///
+/// A single `HWND_BOTTOM` call is not sticky: any later `ShowWindow`,
+/// activation or z-order change can lift the window back up. A light keeper
+/// thread re-applies the pin so it survives those events.
+pub fn set_desktop_pin(hwnd: isize, enabled: bool) {
+    PIN_HWND.store(hwnd, Ordering::SeqCst);
+    PIN_ENABLED.store(enabled, Ordering::SeqCst);
+    apply_pin(hwnd, enabled);
+
+    KEEPER.get_or_init(|| {
+        std::thread::spawn(|| loop {
+            std::thread::sleep(Duration::from_millis(700));
+            if !PIN_ENABLED.load(Ordering::SeqCst) {
+                continue;
+            }
+            let hwnd = PIN_HWND.load(Ordering::SeqCst);
+            if hwnd != 0 {
+                apply_pin(hwnd, true);
+            }
+        });
+    });
+}
+
+pub fn set_click_through(hwnd: isize, enabled: bool) {
+    unsafe {
+        let style = GetWindowLongW(HWND(hwnd as _), GWL_EXSTYLE) as u32;
         let updated = if enabled {
             style | WS_EX_TRANSPARENT.0
         } else {

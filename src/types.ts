@@ -36,6 +36,27 @@ export interface WallpaperSettings {
   dim: number;
 }
 
+export interface FontSettings {
+  /** CSS family. `WidgetCustomFont` means the `@font-face` loaded from `dir`. */
+  family: string;
+  /** Folder or single font file used for the custom face. */
+  dir: string;
+}
+
+export interface FontFile {
+  path: string;
+  label: string;
+  url: string;
+  weight: number;
+  style: string;
+}
+
+export interface FontCatalog {
+  system: string[];
+  custom: FontFile[];
+  family: string;
+}
+
 export interface WallpaperInfo {
   dataUrl: string | null;
   style: "fill" | "fit" | "stretch" | "center" | "tile" | "span";
@@ -61,6 +82,7 @@ export interface Settings {
   periods: PeriodTime[];
   css: CustomCss;
   wallpaper: WallpaperSettings;
+  font: FontSettings;
   widgetVisible: boolean;
 }
 

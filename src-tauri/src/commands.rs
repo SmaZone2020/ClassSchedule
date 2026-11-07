@@ -295,3 +295,22 @@ fn notify_schedule(app: &AppHandle, value: &Value) {
         let _ = window.emit("schedule-changed", value);
     }
 }
+
+#[command]
+pub fn get_font_catalog(app: AppHandle) -> crate::fonts::FontCatalog {
+    let settings = app.state::<AppState>().with_settings(|s| s.clone());
+    crate::fonts::catalog(&settings.font.dir)
+}
+
+/// Point the custom face at a new folder / file and re-scan it.
+#[command]
+pub fn set_font_dir(app: AppHandle, dir: String) -> Result<crate::fonts::FontCatalog, String> {
+    let state = app.state::<AppState>();
+    let settings = state.update(|guard| {
+        guard.font.dir = dir;
+        guard.font.family = crate::fonts::CUSTOM_FAMILY.into();
+    });
+    storage::save_settings(&app, &settings)?;
+    window_ops::send_settings(&app, &settings);
+    Ok(crate::fonts::catalog(&settings.font.dir))
+}

@@ -1,4 +1,8 @@
 import type { CustomCss, Settings } from "../types";
+import { Card, Row } from "../ui/Card";
+import { Button } from "../ui/Button";
+import { Switch } from "../ui/Switch";
+import { Code } from "./icons";
 
 interface CssSectionProps {
   settings: Settings;
@@ -15,45 +19,63 @@ background: rgba(255,255,255,.16);
 border-radius: 14px;
 backdrop-filter: blur(10px);`;
 
+const EDITOR_CLASS =
+  "w-full min-h-[132px] resize-y rounded-xl border border-border bg-muted/40 px-3 py-2.5 font-mono text-[12px] leading-5 text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-foreground/30 focus:ring-2 focus:ring-ring/25";
+
 export function CssSection({ settings, onChange }: CssSectionProps) {
   const css = settings.css;
   const patch = (value: Partial<CustomCss>) => onChange({ css: { ...css, ...value } });
 
   return (
-    <div className="settings-card">
-      <h2>高级 CSS</h2>
-      <label className="settings-row">
-        <span>启用自定义 CSS</span>
-        <input
-          type="checkbox"
+    <Card
+      title="高级 CSS"
+      description="以行内声明形式注入，无需写选择器和大括号。"
+      icon={<Code />}
+      index={0}
+      actions={
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => patch({ container: "", course: "" })}
+        >
+          清空
+        </Button>
+      }
+    >
+      <Row label="启用自定义 CSS">
+        <Switch
           checked={css.enabled}
-          onChange={(event) => patch({ enabled: event.target.checked })}
+          ariaLabel="启用自定义 CSS"
+          onCheckedChange={(checked) => patch({ enabled: checked })}
         />
-      </label>
-      <p className="settings-hint">
-        代码以行内声明形式注入对应选择器（无需写选择器和大括号）。容器：.schedule-panel；课程项：.course-card。
-      </p>
-      <div className="css-scope-label">课表容器 (.schedule-panel)</div>
-      <textarea
-        className="css-editor"
-        spellCheck={false}
-        placeholder={CONTAINER_PLACEHOLDER}
-        value={css.container}
-        onChange={(event) => patch({ container: event.target.value })}
-      />
-      <div className="css-scope-label">课程项 (.course-card)</div>
-      <textarea
-        className="css-editor"
-        spellCheck={false}
-        placeholder={COURSE_PLACEHOLDER}
-        value={css.course}
-        onChange={(event) => patch({ course: event.target.value })}
-      />
-      <div className="settings-row" style={{ justifyContent: "flex-start", gap: 10 }}>
-        <button className="secondary" onClick={() => patch({ container: "", course: "" })}>
-          清空自定义 CSS
-        </button>
+      </Row>
+
+      <div className="mt-2 space-y-3">
+        <div>
+          <div className="mb-1.5 px-1 text-[11px] font-semibold tracking-wide text-muted-foreground">
+            课表容器 · .schedule-panel
+          </div>
+          <textarea
+            className={EDITOR_CLASS}
+            spellCheck={false}
+            placeholder={CONTAINER_PLACEHOLDER}
+            value={css.container}
+            onChange={(event) => patch({ container: event.target.value })}
+          />
+        </div>
+        <div>
+          <div className="mb-1.5 px-1 text-[11px] font-semibold tracking-wide text-muted-foreground">
+            课程项 · .course-card
+          </div>
+          <textarea
+            className={EDITOR_CLASS}
+            spellCheck={false}
+            placeholder={COURSE_PLACEHOLDER}
+            value={css.course}
+            onChange={(event) => patch({ course: event.target.value })}
+          />
+        </div>
       </div>
-    </div>
+    </Card>
   );
 }

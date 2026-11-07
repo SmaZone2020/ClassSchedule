@@ -35,6 +35,7 @@ export const defaultSettings: Settings = {
   ],
   css: { enabled: false, container: "", course: "" } as CustomCss,
   wallpaper: { mode: "system", customPath: null, dim: 0.12 },
+  font: { family: "WidgetCustomFont", dir: "D:\\Font\\SiYuanSongTiRegular" },
   widgetVisible: true
 };
 
@@ -47,7 +48,8 @@ export function mergeSettings(raw: unknown): Settings {
     panel: { ...defaultSettings.panel, ...(value.panel ?? {}) },
     periods: value.periods?.length ? value.periods : defaultSettings.periods,
     css: { ...defaultSettings.css, ...(value.css ?? {}) },
-    wallpaper: { ...defaultSettings.wallpaper, ...(value.wallpaper ?? {}) }
+    wallpaper: { ...defaultSettings.wallpaper, ...(value.wallpaper ?? {}) },
+    font: { ...defaultSettings.font, ...(value.font ?? {}) }
   };
 }
 

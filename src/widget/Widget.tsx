@@ -11,6 +11,7 @@ import LiquidGlassPanel from "./LiquidGlassPanel";
 import CourseDetail, { detailAnchor, type DetailAnchor } from "./CourseDetail";
 import WallpaperLayer, { resolveMonitor } from "./WallpaperLayer";
 import { applyTheme } from "./theme";
+import { applyAppFont } from "../font";
 import WidgetHeader from "./WidgetHeader";
 import Timetable from "./Timetable";
 import CourseEditor from "./CourseEditor";
@@ -37,6 +38,10 @@ export default function Widget() {
   useEffect(() => {
     if (settings) applyTheme(settings.theme);
   }, [settings?.theme]);
+
+  useEffect(() => {
+    applyAppFont(settings?.font);
+  }, [settings?.font]);
 
   useEffect(() => {
     if (!settings?.clickThrough) return;

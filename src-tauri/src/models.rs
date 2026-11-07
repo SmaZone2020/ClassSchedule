@@ -106,6 +106,25 @@ impl Default for WallpaperSettings {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase", default)]
+pub struct FontSettings {
+    /// CSS `font-family` used across the widget. The custom face family
+    /// (`WidgetCustomFont`) means "load `dir` through `@font-face`".
+    pub family: String,
+    /// Folder or single font file used for the custom face.
+    pub dir: String,
+}
+
+impl Default for FontSettings {
+    fn default() -> Self {
+        Self {
+            family: crate::fonts::CUSTOM_FAMILY.into(),
+            dir: crate::fonts::DEFAULT_FONT_DIR.into(),
+        }
+    }
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WallpaperInfo {
@@ -132,6 +151,7 @@ pub struct Settings {
     pub periods: Vec<PeriodTime>,
     pub css: CustomCss,
     pub wallpaper: WallpaperSettings,
+    pub font: FontSettings,
     pub widget_visible: bool,
 }
 
@@ -173,6 +193,7 @@ impl Default for Settings {
             periods: default_periods(),
             css: CustomCss::default(),
             wallpaper: WallpaperSettings::default(),
+            font: FontSettings::default(),
             widget_visible: true,
         }
     }

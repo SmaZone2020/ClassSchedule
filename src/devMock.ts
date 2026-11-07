@@ -211,6 +211,28 @@ export function installDevMock() {
         return data.settings;
       }
       if (command === "set_layout_columns") return null;
+      if (command === "get_font_catalog") {
+        return {
+          system: ["Segoe UI", "Microsoft YaHei", "SimSun", "KaiTi", "Consolas"],
+          custom: [
+            {
+              path: "D:\\Font\\SiYuanSongTiRegular\\SourceHanSerifCN-Regular-1.otf",
+              label: "SourceHanSerifCN-Regular-1",
+              url: "",
+              weight: 400,
+              style: "normal"
+            }
+          ],
+          family: "WidgetCustomFont"
+        };
+      }
+      if (command === "set_font_dir") {
+        data.settings = {
+          ...data.settings,
+          font: { family: "WidgetCustomFont", dir: String(args.dir ?? "") }
+        };
+        return { system: [], custom: [], family: "WidgetCustomFont" };
+      }
       if (command === "save_schedule") {
         data.schedule = (args.schedule as AppData["schedule"]) ?? null;
         return data.schedule;

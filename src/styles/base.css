@@ -14,6 +14,7 @@
   --course-color: #4f8ef7;
   --course-soft: rgba(79, 142, 247, 0.22);
   --course-glow: rgba(79, 142, 247, 0.08);
+  --app-font: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: light) {
@@ -53,7 +54,7 @@ body {
   margin: 0;
   padding: 0;
   background: transparent;
-  font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  font-family: var(--app-font, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif);
 }
 
 .widget-body {

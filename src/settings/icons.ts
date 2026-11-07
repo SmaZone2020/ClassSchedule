@@ -1,0 +1,17 @@
+export { default as ArrowChevronDown } from "@gravity-ui/icons/ArrowChevronDown";
+export { default as ArrowChevronLeft } from "@gravity-ui/icons/ArrowChevronLeft";
+export { default as ArrowChevronRight } from "@gravity-ui/icons/ArrowChevronRight";
+export { default as Bars } from "@gravity-ui/icons/Bars";
+export { default as Check } from "@gravity-ui/icons/Check";
+export { default as Clock } from "@gravity-ui/icons/Clock";
+export { default as Code } from "@gravity-ui/icons/Code";
+export { default as Font } from "@gravity-ui/icons/Font";
+export { default as Gear } from "@gravity-ui/icons/Gear";
+export { default as LayoutColumns } from "@gravity-ui/icons/LayoutColumns";
+export { default as LayoutHeader } from "@gravity-ui/icons/LayoutHeader";
+export { default as Palette } from "@gravity-ui/icons/Palette";
+export { default as Pencil } from "@gravity-ui/icons/Pencil";
+export { default as Picture } from "@gravity-ui/icons/Picture";
+export { default as Plus } from "@gravity-ui/icons/Plus";
+export { default as TrashBin } from "@gravity-ui/icons/TrashBin";
+export { default as Xmark } from "@gravity-ui/icons/Xmark";

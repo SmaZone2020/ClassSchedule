@@ -1,4 +1,5 @@
 mod commands;
+mod fonts;
 mod geometry;
 mod models;
 mod platform;
@@ -16,6 +17,37 @@ use models::Settings;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .register_uri_scheme_protocol("font", |_ctx, request| {
+            let token = request
+                .uri()
+                .query()
+                .and_then(|query| {
+                    query.split('&').find_map(|pair| {
+                        pair.strip_prefix("b=").map(|value| value.to_string())
+                    })
+                })
+                .unwrap_or_default();
+
+            let Some(path) = fonts::decode_path(&token) else {
+                return tauri::http::Response::builder()
+                    .status(tauri::http::StatusCode::BAD_REQUEST)
+                    .body(Vec::new())
+                    .unwrap();
+            };
+
+            match std::fs::read(&path) {
+                Ok(bytes) => tauri::http::Response::builder()
+                    .header("Content-Type", fonts::content_type(&path))
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Cache-Control", "max-age=86400")
+                    .body(bytes)
+                    .unwrap(),
+                Err(_) => tauri::http::Response::builder()
+                    .status(tauri::http::StatusCode::NOT_FOUND)
+                    .body(Vec::new())
+                    .unwrap(),
+            }
+        })
         .manage(tray::AppState::new(Settings::default()))
         .invoke_handler(tauri::generate_handler![
             commands::get_app_data,
@@ -40,7 +72,9 @@ pub fn run() {
             commands::import_wallpaper,
             commands::set_wallpaper_mode,
             commands::set_widget_position,
-            commands::set_widget_size
+            commands::set_widget_size,
+            commands::get_font_catalog,
+            commands::set_font_dir
         ])        .on_window_event(|window, event| {
             if window.label() == "settings" {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event {

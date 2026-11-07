@@ -1,7 +1,8 @@
 import { createRoot } from "react-dom/client";
 import SettingsRoot from "./SettingsRoot";
 import { installDevMock } from "../devMock";
-import "../styles/global.css";
+import "../styles/base.css";
+import "../styles/settings-tw.css";
 
 installDevMock();
 
