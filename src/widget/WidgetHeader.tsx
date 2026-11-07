@@ -1,7 +1,7 @@
 import type { Settings } from "../types";
 import type { WeekModel } from "./useWeekModel";
 import { dateRangeLabel } from "../scheduleUtils";
-import { ArrowChevronLeft, ArrowChevronRight, Check, Pencil } from "./icons";
+import { ArrowLeft, ArrowRight, Check, Pencil } from "./icons";
 
 interface WidgetHeaderProps {
   settings: Settings;
@@ -46,7 +46,7 @@ export default function WidgetHeader({
               disabled={!singleView && model.index <= 0}
               aria-label={singleView ? "前一天" : "上一周"}
             >
-              <ArrowChevronLeft width={12} height={12} />
+              <ArrowLeft width={12} height={12} />
             </button>
             <span className="schedule-title">{title}</span>
             <button
@@ -55,7 +55,7 @@ export default function WidgetHeader({
               disabled={!singleView && model.index >= model.total - 1}
               aria-label={singleView ? "后一天" : "下一周"}
             >
-              <ArrowChevronRight width={12} height={12} />
+              <ArrowRight width={12} height={12} />
             </button>
           </div>
         ) : (
