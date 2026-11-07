@@ -1,58 +1,145 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import type { Schedule, Settings } from "../types";
-import { mergeSettings } from "../settingsDefaults";
-import { courseColor, colorStyle } from "../courseColor";
+import { listen } from "@tauri-apps/api/event";
+import type {
+  AppData,
+  Schedule,
+  Settings,
+  WallpaperInfo,
+  WidgetRect
+} from "../types";
+import { baseSize, mergeSettings } from "../settingsDefaults";
+import { courseColor, courseVars } from "../courseColor";
 import {
   currentPeriod,
-  findCurrentWeek,
-  parseTime,
+  findCurrentWeekIndex,
+  isoDate,
   periodRangeLabel,
+  sessionEnded,
+  sessionRange,
   sessionStartLabel,
+  sortedWeeks,
   visibleDays,
+  weekFinished,
   weekHasSessions
 } from "../scheduleUtils";
 import LiquidGlassPanel from "./LiquidGlassPanel";
+import WallpaperLayer, { resolveMonitor } from "./WallpaperLayer";
+import { applyTheme } from "./theme";
 
 export default function Widget() {
+  const [data, setData] = useState<AppData | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [schedule, setSchedule] = useState<Schedule | null>(null);
+  const [wallpaper, setWallpaper] = useState<WallpaperInfo | null>(null);
+  const [rect, setRect] = useState<WidgetRect | null>(null);
+  const [weekOffset, setWeekOffset] = useState(0);
   const [now, setNow] = useState(() => new Date());
+  const dataRef = useRef<AppData | null>(null);
 
   useEffect(() => {
-    invoke<{ settings: unknown; schedule: Schedule | null }>("get_app_data")
-      .then((data) => {
-        setSettings(mergeSettings(data.settings));
-        setSchedule(data.schedule);
-      })
-      .catch(() => setSettings(mergeSettings({})));
+    let alive = true;
+    const disposers: Array<() => void> = [];
 
-    const unlisten = import("@tauri-apps/api/event").then(({ listen }) =>
-      listen<Settings>("settings-changed", (event) => {
-        setSettings(mergeSettings(event.payload));
+    invoke<AppData>("get_app_data")
+      .then((next) => {
+        if (!alive) return;
+        dataRef.current = next;
+        setData(next);
+        setSettings(mergeSettings(next.settings));
+        setSchedule(next.schedule);
+        setWallpaper(next.wallpaper);
+        setRect(next.rect);
       })
-    );
+      .catch(() => {
+        if (alive) setSettings(mergeSettings({}));
+      });
+
+    listen<Settings>("settings-changed", (event) => {
+      const next = mergeSettings(event.payload);
+      const previous = dataRef.current?.settings;
+      setSettings(next);
+      if (
+        previous &&
+        (next.wallpaper.mode !== previous.wallpaper.mode ||
+          next.wallpaper.customPath !== previous.wallpaper.customPath)
+      ) {
+        invoke<WallpaperInfo>("get_wallpaper").then(setWallpaper).catch(() => {});
+      }
+      if (dataRef.current) {
+        dataRef.current = { ...dataRef.current, settings: next };
+      }
+    }).then((fn) => disposers.push(fn));
+
+    listen<Schedule | null>("schedule-changed", (event) => {
+      setSchedule(event.payload ?? null);
+      setWeekOffset(0);
+    }).then((fn) => disposers.push(fn));
+
+    listen<WallpaperInfo>("wallpaper-changed", (event) => {
+      setWallpaper(event.payload);
+    }).then((fn) => disposers.push(fn));
+
+    listen<WidgetRect>("layout-changed", (event) => {
+      setRect(event.payload);
+    }).then((fn) => disposers.push(fn));
 
     const timer = window.setInterval(() => setNow(new Date()), 30_000);
     return () => {
+      alive = false;
       window.clearInterval(timer);
-      unlisten.then((fn) => fn());
+      disposers.forEach((fn) => fn());
     };
   }, []);
 
+  useEffect(() => {
+    if (settings) applyTheme(settings.theme);
+  }, [settings?.theme]);
+
+  // Week switching is only available while the widget accepts the mouse.
+  useEffect(() => {
+    if (settings?.clickThrough) setWeekOffset(0);
+  }, [settings?.clickThrough]);
+
   const model = useMemo(() => {
     if (!settings) return null;
-    const { week, isBreak } = findCurrentWeek(schedule);
-    const days = visibleDays(week, settings);
-    const finishedAll = week !== null && !weekHasSessions(week);
-    return { week, isBreak, days, finishedAll };
-  }, [settings, schedule]);
+    const weeks = sortedWeeks(schedule);
+    const baseIndex = findCurrentWeekIndex(schedule, now);
+    const index = weeks.length
+      ? Math.min(Math.max(baseIndex + weekOffset, 0), weeks.length - 1)
+      : -1;
+    const week = index >= 0 ? weeks[index] : null;
+    const isCurrent = index === baseIndex;
+    const days = visibleDays(week, settings, now);
+    return {
+      week,
+      index,
+      baseIndex,
+      total: weeks.length,
+      isCurrent,
+      days,
+      columns: days.length,
+      finished: isCurrent && weekFinished(week, settings, now)
+    };
+  }, [settings, schedule, now, weekOffset]);
+
+  const columns = model?.columns ?? 7;
+
+  // Keep the native window sized to the rendered column count.
+  useEffect(() => {
+    invoke("set_layout_columns", { columns }).catch(() => {});
+  }, [columns]);
 
   if (!settings || !model) return null;
 
-  const today = todayLabel();
-  const currentPeriodIndex = currentPeriod(settings, now);
+  const today = isoDate(now);
+  const activePeriod = currentPeriod(settings, now);
   const courses = schedule?.courses;
+  const accent = settings.accent;
+  const monitor = data ? resolveMonitor(data.monitors, settings) : null;
+  const size = baseSize(columns);
+  const hasWallpaper = Boolean(wallpaper?.dataUrl && monitor && rect);
+  const canSwitchWeek = !settings.clickThrough && model.total > 1;
 
   const panel = (
     <div
@@ -60,37 +147,61 @@ export default function Widget() {
       style={
         {
           "--panel-radius": `${settings.panel.radius}px`,
-          "--panel-opacity": settings.panel.opacity,
-          "--panel-blur": `${settings.panel.blur}px`,
+          "--panel-tint-alpha": hasWallpaper
+            ? settings.panel.opacity * 0.5
+            : settings.panel.opacity,
           "--panel-gap": `${settings.panel.gap}px`,
-          "--accent": settings.accent
+          "--accent": accent
         } as React.CSSProperties
       }
     >
       {settings.panel.showHeader && (
         <div className="schedule-header">
-          <span className="schedule-title">{schedule?.meta?.semester ?? "课表"}</span>
+          {canSwitchWeek ? (
+            <button
+              className="week-nav"
+              onClick={() => setWeekOffset((value) => value - 1)}
+              disabled={model.index <= 0}
+              aria-label="上一周"
+            >
+              ‹
+            </button>
+          ) : null}
+          <span className="schedule-title">
+            {model.week
+              ? `第 ${model.week.week} 周`
+              : (schedule?.meta?.semester ?? "课表")}
+          </span>
+          {canSwitchWeek ? (
+            <button
+              className="week-nav"
+              onClick={() => setWeekOffset((value) => value + 1)}
+              disabled={model.index >= model.total - 1}
+              aria-label="下一周"
+            >
+              ›
+            </button>
+          ) : null}
           <span className="schedule-week">
-            {model.week ? `第 ${model.week.week} 周` : "暂无课表"}
-            {model.isBreak ? " · 非本周" : ""}
+            {model.isCurrent ? "本周" : "非本周"}
           </span>
         </div>
       )}
 
-      {model.finishedAll ? (
+      {model.finished ? (
         <div className="week-break">
-          <strong>本周课程已全部结束 🎉</strong>
+          <strong>本周课程已全部结束</strong>
           <span>好好休息，下周再见</span>
         </div>
-      ) : model.days.length === 0 ? (
+      ) : !model.week || !weekHasSessions(model.week) ? (
         <div className="week-break">
           <strong>暂无课表数据</strong>
-          <span>右键托盘图标 → 设置 → 导入课表</span>
+          <span>托盘右键 → 设置 → 导入课表</span>
         </div>
       ) : (
         <div
-          className="schedule-days"
-          style={{ gridTemplateColumns: `repeat(${model.days.length}, minmax(0, 1fr))` }}
+          className={`schedule-days${columns === 1 ? " single" : ""}`}
+          style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
         >
           {model.days.map((day) => {
             const isToday = day.date === today;
@@ -98,29 +209,26 @@ export default function Widget() {
               <div className="schedule-day" key={day.date}>
                 <div className={`day-head${isToday ? " today" : ""}`}>
                   {day.weekday}
-                  {isToday ? " · 今天" : ""}
+                  {isToday ? " 今天" : ""}
                 </div>
                 <div className="day-courses">
                   {day.sessions.length === 0 ? (
                     <div className="empty-day">无课</div>
                   ) : (
                     day.sessions.map((session, index) => {
-                      const color = courseColor(session.course, courses, settings.accent);
-                      const period = normalizePeriod(session);
+                      const color = courseColor(session.course, courses, accent);
+                      const range = sessionRange(session);
                       const isCurrent =
-                        isToday &&
-                        currentPeriodIndex !== null &&
-                        period?.start === currentPeriodIndex;
-                      const finished =
-                        isToday && dayIsFinishedSession(session, settings, now);
+                        isToday && activePeriod !== null && range?.start === activePeriod;
+                      const isOver = isToday && sessionEnded(session, settings, now);
                       const startLabel = sessionStartLabel(session, settings);
                       return (
                         <div
-                          key={index}
-                          className={`course-card${finished ? " finished" : ""}${
+                          key={`${day.date}-${index}`}
+                          className={`course-card${isOver ? " finished" : ""}${
                             isCurrent ? " current" : ""
                           }`}
-                          style={colorStyle(color)}
+                          style={courseVars(color)}
                         >
                           <div className="course-name">
                             {session.courseShort || session.course}
@@ -148,64 +256,44 @@ export default function Widget() {
   );
 
   return (
-    <div
-      className="schedule-root"
-      style={{ "--scale": settings.scale } as React.CSSProperties}
-    >
-      {settings.style === "liquid" ? (
-        <LiquidGlassPanel radius={settings.panel.radius}>{panel}</LiquidGlassPanel>
-      ) : (
-        panel
+    <>
+      {wallpaper?.dataUrl && monitor && rect && (
+        <WallpaperLayer
+          wallpaper={wallpaper}
+          settings={settings}
+          monitor={monitor}
+          rect={rect}
+        />
       )}
-      {settings.css.enabled && <ScopedCss css={settings.css} />}
-    </div>
+      <div
+        className="schedule-root"
+        style={
+          {
+            "--scale": settings.scale,
+            width: `${size.width}px`,
+            height: `${size.height}px`
+          } as React.CSSProperties
+        }
+      >
+        {settings.style === "liquid" ? (
+          <LiquidGlassPanel radius={settings.panel.radius} blur={settings.panel.blur}>
+            {panel}
+          </LiquidGlassPanel>
+        ) : (
+          <div
+            className={`panel-shell${hasWallpaper ? " has-wallpaper" : ""}`}
+            style={{ borderRadius: settings.panel.radius }}
+          >
+            {panel}
+          </div>
+        )}
+        {settings.css.enabled && (
+          <style>{`
+.schedule-panel { ${settings.css.container} }
+.course-card { ${settings.css.course} }
+`}</style>
+        )}
+      </div>
+    </>
   );
-}
-
-function ScopedCss({ css }: { css: { container: string; course: string } }) {
-  const text = useMemo(
-    () => `
-.schedule-panel { ${css.container} }
-.course-card { ${css.course} }
-`,
-    [css.container, css.course]
-  );
-  return <style>{text}</style>;
-}
-
-function todayLabel(): string {
-  const now = new Date();
-  const offset = now.getTimezoneOffset() * 60_000;
-  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
-}
-
-function normalizePeriod(session: { periods: unknown }): { start: number; end: number } | null {
-  const raw = session.periods;
-  if (typeof raw === "string") return null;
-  if (raw && typeof raw === "object" && "start" in raw) {
-    return raw as { start: number; end: number };
-  }
-  return null;
-}
-
-function dayIsFinishedSession(
-  session: { periods: unknown },
-  settings: Settings,
-  now: Date
-): boolean {
-  let endIndex: number | null = null;
-  const raw = session.periods;
-  if (typeof raw === "string") {
-    const matches = [...raw.matchAll(/(\d+)/g)];
-    endIndex = matches.length ? Number(matches[matches.length - 1][1]) : null;
-  } else if (raw && typeof raw === "object" && "end" in raw) {
-    endIndex = Number((raw as { end: number }).end);
-  }
-  if (endIndex === null) return false;
-  const period = settings.periods.find((item) => item.index === endIndex);
-  if (!period) return false;
-  const endMinutes = parseTime(period.end);
-  if (endMinutes === null) return false;
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  return nowMinutes > endMinutes;
 }

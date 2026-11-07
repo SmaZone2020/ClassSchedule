@@ -1,84 +1,83 @@
 import { useEffect, useRef, useState } from "react";
-import type { Settings } from "../types";
-import { persistSettings } from "./useAppData";
+import { invoke } from "@tauri-apps/api/core";
+import type { AppData, Settings, WallpaperInfo } from "../types";
+import { persistSettings } from "./api";
 import { PositionSection } from "./PositionSection";
 import { DisplaySection } from "./DisplaySection";
+import { WallpaperSection } from "./WallpaperSection";
 import { ScheduleSection } from "./ScheduleSection";
 import { PeriodsSection } from "./PeriodsSection";
 import { CssSection } from "./CssSection";
 
 interface SettingsAppProps {
-  initialSettings: Settings;
-  schedule: AppDataShape | null;
-  configDir: string;
-  reload: () => void;
+  data: AppData;
+  reload: () => Promise<void>;
 }
 
-interface AppDataShape {
-  schedule: import("../types").Schedule | null;
-}
-
-export default function SettingsApp({
-  initialSettings,
-  schedule,
-  configDir,
-  reload
-}: SettingsAppProps) {
-  const [settings, setSettings] = useState<Settings>(initialSettings);
-  const [saved, setSaved] = useState(false);
+export default function SettingsApp({ data, reload }: SettingsAppProps) {
+  const [settings, setSettings] = useState<Settings>(data.settings);
+  const [wallpaper, setWallpaper] = useState<WallpaperInfo | null>(data.wallpaper);
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const timerRef = useRef<number | null>(null);
   const latest = useRef(settings);
   latest.current = settings;
+  const dirty = useRef(false);
 
   const patch = (value: Partial<Settings>) => {
+    dirty.current = true;
     setSettings((previous) => ({ ...previous, ...value }));
-    setSaved(false);
   };
 
   useEffect(() => {
+    if (!dirty.current) return;
+    setState("saving");
     if (timerRef.current) window.clearTimeout(timerRef.current);
     timerRef.current = window.setTimeout(async () => {
       try {
         const persisted = await persistSettings(latest.current);
+        dirty.current = false;
         setSettings(persisted);
-        setSaved(true);
+        setState("saved");
       } catch {
-        setSaved(false);
+        setState("error");
       }
-    }, 350);
+    }, 300);
     return () => {
       if (timerRef.current) window.clearTimeout(timerRef.current);
     };
   }, [settings]);
 
+  // Keep the wallpaper preview in sync when the native side re-reads it.
+  useEffect(() => {
+    invoke<WallpaperInfo>("get_wallpaper")
+      .then(setWallpaper)
+      .catch(() => {});
+  }, []);
+
+  const label =
+    state === "saving" ? "保存中…" : state === "error" ? "保存失败" : "已保存";
+
   return (
-    <div className="settings-shell">
+    <div className="settings-shell" style={{ "--accent": settings.accent } as React.CSSProperties}>
       <h1>
-        课表组件设置{" "}
-        <span className="status-pill" style={{ marginLeft: 8 }}>
-          {saved ? "已保存" : "保存中…"}
-        </span>
+        课表组件设置 <span className="status-pill">{label}</span>
       </h1>
 
       <ScheduleSection
-        schedule={schedule?.schedule ?? null}
-        configDir={configDir}
+        schedule={data.schedule}
+        configDir={data.configDir}
         onChanged={reload}
       />
-      <PositionSection
-        settings={settings}
-        monitors={monitorsCache ?? []}
-        onChange={patch}
-      />
+      <PositionSection settings={settings} monitors={data.monitors} onChange={patch} />
       <DisplaySection settings={settings} onChange={patch} />
+      <WallpaperSection
+        settings={settings}
+        wallpaper={wallpaper}
+        onChange={patch}
+        onWallpaperChanged={setWallpaper}
+      />
       <PeriodsSection settings={settings} onChange={patch} />
       <CssSection settings={settings} onChange={patch} />
     </div>
   );
-}
-
-let monitorsCache: import("../types").MonitorInfo[] | null = null;
-
-export function cacheMonitors(monitors: import("../types").MonitorInfo[]) {
-  monitorsCache = monitors;
 }

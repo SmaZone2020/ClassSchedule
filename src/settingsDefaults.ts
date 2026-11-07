@@ -4,6 +4,7 @@ export const defaultSettings: Settings = {
   position: { monitor: null, x: 60, y: 60 },
   scale: 1,
   daysMode: "auto",
+  align: "auto",
   clickThrough: true,
   desktopPin: true,
   theme: "auto",
@@ -18,7 +19,6 @@ export const defaultSettings: Settings = {
     showPeriodTime: true,
     showHeader: true
   },
-  systemAcrylic: true,
   periods: [
     { index: 1, start: "08:00", end: "08:45" },
     { index: 2, start: "08:55", end: "09:40" },
@@ -30,6 +30,7 @@ export const defaultSettings: Settings = {
     { index: 8, start: "16:55", end: "17:40" }
   ],
   css: { enabled: false, container: "", course: "" } as CustomCss,
+  wallpaper: { mode: "system", customPath: null, dim: 0.12 },
   widgetVisible: true
 };
 
@@ -41,6 +42,28 @@ export function mergeSettings(raw: unknown): Settings {
     position: { ...defaultSettings.position, ...(value.position ?? {}) },
     panel: { ...defaultSettings.panel, ...(value.panel ?? {}) },
     periods: value.periods?.length ? value.periods : defaultSettings.periods,
-    css: { ...defaultSettings.css, ...(value.css ?? {}) }
+    css: { ...defaultSettings.css, ...(value.css ?? {}) },
+    wallpaper: { ...defaultSettings.wallpaper, ...(value.wallpaper ?? {}) }
   };
+}
+
+/** Unscaled base size, must match `src-tauri/src/window_ops.rs`. */
+export const DAY_WIDTH = 80;
+export const PANEL_PAD = 14;
+export const PANEL_GAP = 6;
+export const MULTI_HEIGHT = 420;
+export const TODAY_WIDTH = 320;
+export const TODAY_HEIGHT = 380;
+
+export function baseSize(columns: number): { width: number; height: number } {
+  const cols = Math.min(Math.max(columns, 1), 7);
+  if (cols <= 1) return { width: TODAY_WIDTH, height: TODAY_HEIGHT };
+  return {
+    width: PANEL_PAD * 2 + cols * DAY_WIDTH + (cols - 1) * PANEL_GAP,
+    height: MULTI_HEIGHT
+  };
+}
+
+export function slotWidth(): number {
+  return baseSize(7).width;
 }

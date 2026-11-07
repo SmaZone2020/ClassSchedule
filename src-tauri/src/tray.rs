@@ -6,17 +6,29 @@ use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
 use crate::models::Settings;
 use crate::platform;
+use crate::storage;
 use crate::window_ops;
 
 pub struct AppState {
     pub settings: Mutex<Settings>,
+    /// Columns currently rendered by the widget: 1 (today), 5 or 7.
+    pub layout_columns: Mutex<u32>,
 }
 
 impl AppState {
     pub fn new(settings: Settings) -> Self {
         Self {
             settings: Mutex::new(settings),
+            layout_columns: Mutex::new(7),
         }
+    }
+
+    pub fn columns(&self) -> u32 {
+        *self.layout_columns.lock().unwrap()
+    }
+
+    pub fn set_columns(&self, columns: u32) {
+        *self.layout_columns.lock().unwrap() = columns.clamp(1, 7);
     }
 
     pub fn with_settings<F, R>(&self, f: F) -> R
@@ -25,6 +37,15 @@ impl AppState {
     {
         let guard = self.settings.lock().unwrap();
         f(&guard)
+    }
+
+    pub fn update<F>(&self, f: F) -> Settings
+    where
+        F: FnOnce(&mut Settings),
+    {
+        let mut guard = self.settings.lock().unwrap();
+        f(&mut guard);
+        guard.clone()
     }
 }
 
@@ -36,23 +57,18 @@ pub fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
 
     let menu = Menu::with_items(app, &[&toggle, &settings_item, &separator, &quit])?;
 
-    let _tray = TrayIconBuilder::with_id("main-tray")
-        .icon(app.default_window_icon().unwrap().clone())
+    let icon = app
+        .default_window_icon()
+        .ok_or_else(|| tauri::Error::AssetNotFound("default icon".into()))?
+        .clone();
+
+    TrayIconBuilder::with_id("main-tray")
+        .icon(icon)
         .tooltip("课表组件")
         .menu(&menu)
         .show_menu_on_left_click(true)
         .on_menu_event(|app, event| match event.id().as_ref() {
-            "toggle" => {
-                let state = app.state::<AppState>();
-                let mut guard = state.settings.lock().unwrap();
-                guard.widget_visible = !guard.widget_visible;
-                let visible = guard.widget_visible;
-                let settings = guard.clone();
-                drop(guard);
-                apply_widget_state(app, &settings, visible);
-                crate::storage::save_settings(app, &settings).ok();
-                window_ops::send_settings(app, &settings);
-            }
+            "toggle" => toggle_widget(app),
             "settings" => open_settings(app),
             "quit" => app.exit(0),
             _ => {}
@@ -62,21 +78,36 @@ pub fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
-pub fn apply_widget_state(app: &AppHandle, settings: &Settings, visible: bool) {
-    if let Some(window) = app.get_webview_window("widget") {
-        window_ops::apply_visibility(&window, visible).ok();
-        if visible {
-            window_ops::apply_position(&window, settings).ok();
-            window_ops::apply_click_through(&window, settings.click_through).ok();
-            pin_to_desktop(&window);
-        }
+fn toggle_widget(app: &AppHandle) {
+    let state = app.state::<AppState>();
+    let settings = {
+        let mut guard = state.settings.lock().unwrap();
+        guard.widget_visible = !guard.widget_visible;
+        guard.clone()
+    };
+    let _ = storage::save_settings(app, &settings);
+    apply_widget_state(app, &settings);
+    window_ops::send_settings(app, &settings);
+}
+
+pub fn apply_widget_state(app: &AppHandle, settings: &Settings) {
+    let Some(window) = app.get_webview_window("widget") else {
+        return;
+    };
+    let _ = window_ops::apply_visibility(&window, settings.widget_visible);
+    if !settings.widget_visible {
+        return;
     }
+    let columns = app.state::<AppState>().columns();
+    let _ = window_ops::apply_position(&window, settings, columns);
+    let _ = window_ops::apply_click_through(&window, settings.click_through);
+    pin_to_desktop(&window);
 }
 
 pub fn pin_to_desktop(window: &tauri::WebviewWindow) {
     #[cfg(windows)]
     if let Ok(hwnd) = window.hwnd() {
-        platform::pin_above_desktop(hwnd.0 as isize);
+        platform::pin_below_normal_windows(hwnd.0 as isize);
     }
 }
 
@@ -98,13 +129,15 @@ pub fn open_settings(app: &AppHandle) {
 
     let builder = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("settings.html".into()))
         .title("课表组件设置")
-        .inner_size(760.0, 640.0)
-        .min_inner_size(680.0, 560.0)
+        .inner_size(780.0, 660.0)
+        .min_inner_size(700.0, 560.0)
         .resizable(true)
         .visible(true)
         .skip_taskbar(false)
-        .decorations(true);
+        .decorations(true)
+        .center();
 
-    builder.build().ok();
+    if let Err(error) = builder.build() {
+        eprintln!("failed to open settings window: {error}");
+    }
 }
-

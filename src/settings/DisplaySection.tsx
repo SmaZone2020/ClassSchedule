@@ -18,7 +18,7 @@ export function DisplaySection({ settings, onChange }: DisplaySectionProps) {
       <h2>显示与样式</h2>
       <div className="settings-grid">
         <div className="settings-row">
-          <label>每天显示</label>
+          <label>显示范围</label>
           <select
             value={settings.daysMode}
             onChange={(event) =>
@@ -28,6 +28,20 @@ export function DisplaySection({ settings, onChange }: DisplaySectionProps) {
             <option value="auto">自动（周末无课只显示 5 天）</option>
             <option value="5">固定 5 天</option>
             <option value="7">固定 7 天</option>
+            <option value="today">仅显示当天课表</option>
+          </select>
+        </div>
+        <div className="settings-row">
+          <label>对齐模式</label>
+          <select
+            value={settings.align}
+            onChange={(event) =>
+              onChange({ align: event.target.value as Settings["align"] })
+            }
+          >
+            <option value="auto">自动（按组件在屏幕左右侧判断）</option>
+            <option value="left">左对齐（宽度变化时向左收缩）</option>
+            <option value="right">右对齐（宽度变化时向右收缩）</option>
           </select>
         </div>
         <div className="settings-row">
@@ -36,8 +50,8 @@ export function DisplaySection({ settings, onChange }: DisplaySectionProps) {
             value={settings.style}
             onChange={(event) => onChange({ style: event.target.value as Settings["style"] })}
           >
-            <option value="frosted">普通磨砂（React backdrop-filter）</option>
-            <option value="liquid">液态玻璃（liquid-glass-react）</option>
+            <option value="frosted">磨砂（桌面壁纸对齐模糊）</option>
+            <option value="liquid">液态玻璃（liquid glass）</option>
           </select>
         </div>
         <div className="settings-row">
@@ -53,21 +67,14 @@ export function DisplaySection({ settings, onChange }: DisplaySectionProps) {
         </div>
         <div className="settings-row">
           <label>强调色</label>
-          <span style={{ display: "flex", gap: 6 }}>
+          <span className="swatch-row">
             {ACCENTS.map((color) => (
               <button
                 key={color}
                 aria-label={color}
+                className={`swatch ${settings.accent === color ? "active" : "idle"}`}
                 onClick={() => onChange({ accent: color })}
-                style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: "50%",
-                  border:
-                    settings.accent === color ? "2px solid #1c2333" : "1px solid #d6dbe7",
-                  background: color,
-                  cursor: "pointer"
-                }}
+                style={{ background: color }}
               />
             ))}
           </span>
@@ -146,6 +153,9 @@ export function DisplaySection({ settings, onChange }: DisplaySectionProps) {
           恢复默认样式
         </button>
       </div>
+      <p className="settings-hint">
+        关闭鼠标穿透后，组件标题栏会出现 ‹ › 按钮，可手动切换上一周/下一周；开启穿透时自动回到本周。对齐模式决定从 7 天收窄到 5 天或 1 天时，课表向哪一侧收缩。
+      </p>
     </div>
   );
 }

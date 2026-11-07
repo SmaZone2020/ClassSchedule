@@ -2,6 +2,7 @@ import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
 
 interface LiquidGlassPanelProps {
   radius: number;
+  blur?: number;
   children: React.ReactNode;
   className?: string;
   style?: CSSProperties;
@@ -13,6 +14,7 @@ const CARD_DISPLACEMENT =
 export default function LiquidGlassPanel({
   children,
   radius,
+  blur = 20,
   className,
   style
 }: LiquidGlassPanelProps) {
@@ -25,7 +27,11 @@ export default function LiquidGlassPanel({
   }, []);
 
   return (
-    <div ref={hostRef} className={className} style={{ position: "relative", ...style }}>
+    <div
+      ref={hostRef}
+      className={className}
+      style={{ position: "relative", width: "100%", height: "100%", ...style }}
+    >
       <svg aria-hidden="true" style={{ position: "absolute", width: 0, height: 0 }}>
         <defs>
           <filter
@@ -40,7 +46,7 @@ export default function LiquidGlassPanel({
             <feDisplacementMap
               in="SourceGraphic"
               in2="MAP"
-              scale={18}
+              scale={16}
               xChannelSelector="R"
               yChannelSelector="G"
             />
@@ -64,8 +70,8 @@ export default function LiquidGlassPanel({
             position: "absolute",
             inset: 0,
             filter: ready ? `url(#${filterId})` : undefined,
-            backdropFilter: "blur(20px) saturate(170%)",
-            WebkitBackdropFilter: "blur(20px) saturate(170%)",
+            backdropFilter: `blur(${blur}px) saturate(170%)`,
+            WebkitBackdropFilter: `blur(${blur}px) saturate(170%)`,
             background:
               "linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05) 45%, rgba(255,255,255,0.12))",
             borderRadius: "inherit",

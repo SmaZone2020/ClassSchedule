@@ -1,9 +1,11 @@
 mod commands;
+mod geometry;
 mod models;
 mod platform;
 mod schedule;
 mod storage;
 mod tray;
+mod wallpaper;
 mod window_ops;
 
 use tauri::Manager;
@@ -31,10 +33,14 @@ pub fn run() {
             commands::clear_schedule,
             commands::get_monitors,
             commands::get_widget_window_state,
+            commands::set_layout_columns,
+            commands::get_widget_rect,
+            commands::get_wallpaper,
+            commands::import_wallpaper,
+            commands::set_wallpaper_mode,
             commands::set_widget_position,
             commands::set_widget_size
-        ])
-        .on_window_event(|window, event| {
+        ])        .on_window_event(|window, event| {
             if window.label() == "settings" {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                     api.prevent_close();
@@ -59,7 +65,7 @@ pub fn run() {
             let widget = app.get_webview_window("widget").expect("widget window");
             widget.hide()?;
             if settings.widget_visible {
-                window_ops::apply_position(&widget, &settings).ok();
+                window_ops::apply_position(&widget, &settings, 7).ok();
                 window_ops::apply_click_through(&widget, settings.click_through).ok();
                 tray::pin_to_desktop(&widget);
                 let _ = widget.show();

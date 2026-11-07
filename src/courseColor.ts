@@ -30,9 +30,25 @@ export function courseColor(
   return PALETTE[hash % PALETTE.length];
 }
 
-export function colorStyle(color: string): React.CSSProperties {
+export function hexToRgba(hex: string, alpha: number): string {
+  const value = hex.replace("#", "");
+  const full =
+    value.length === 3
+      ? value
+          .split("")
+          .map((char) => char + char)
+          .join("")
+      : value;
+  const r = Number.parseInt(full.slice(0, 2), 16) || 0;
+  const g = Number.parseInt(full.slice(2, 4), 16) || 0;
+  const b = Number.parseInt(full.slice(4, 6), 16) || 0;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+export function courseVars(color: string): React.CSSProperties {
   return {
-    background: `linear-gradient(150deg, ${color}2e, ${color}14 60%, transparent), var(--card-bg)`,
-    borderLeft: `3px solid ${color}`
-  };
+    "--course-color": color,
+    "--course-soft": hexToRgba(color, 0.22),
+    "--course-glow": hexToRgba(color, 0.08)
+  } as React.CSSProperties;
 }

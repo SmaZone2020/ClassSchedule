@@ -2,33 +2,29 @@ use serde_json::{json, Value};
 use tauri::command;
 use tauri::{AppHandle, Manager};
 
-use crate::models::{AppData, MonitorInfo, Settings, WidgetSize};
+use crate::geometry;
+use crate::models::{AppData, MonitorInfo, Settings, WallpaperInfo, WidgetSize};
 use crate::storage;
 use crate::tray::{self, AppState};
+use crate::wallpaper;
 use crate::window_ops;
 
 #[command]
 pub fn get_app_data(app: AppHandle) -> Result<AppData, String> {
-    let state = app.state::<AppState>();
-    let settings = state.with_settings(|s| s.clone());
+    let settings = app.state::<AppState>().with_settings(|s| s.clone());
     let schedule = storage::load_schedule(&app);
-    let schedule_error = if schedule.is_none() {
-        Some("课表数据损坏".into())
-    } else {
-        None
-    };
-    let config_dir = storage::data_dir(&app).to_string_lossy().to_string();
-    let widget = app
-        .get_webview_window("widget")
-        .ok_or("组件窗口不存在")?;
+    let monitors = geometry::monitor_list(&app)?;
+    let columns = app.state::<AppState>().columns();
 
     Ok(AppData {
-        widget_size: widget_size(&widget, &settings),
+        rect: geometry::rect(&monitors, &settings, columns),
+        wallpaper: wallpaper::load(&settings.wallpaper),
+        widget_size: geometry::widget_size(&app, &settings),
+        config_dir: storage::data_dir(&app).to_string_lossy().to_string(),
         settings,
         schedule,
-        schedule_error,
-        monitors: monitor_list(&app)?,
-        config_dir,
+        schedule_error: None,
+        monitors,
     })
 }
 
@@ -39,20 +35,48 @@ pub fn get_settings(app: AppHandle) -> Result<Settings, String> {
 }
 
 #[command]
-pub fn update_settings(app: AppHandle, settings: Settings) -> Result<Settings, String> {
-    let scale = settings.scale.clamp(0.3, 2.0);
-    let mut settings = settings;
-    settings.scale = scale;
+pub fn update_settings(app: AppHandle, mut settings: Settings) -> Result<Settings, String> {
+    settings.scale = settings.scale.clamp(0.3, 2.0);
+    settings.wallpaper.dim = settings.wallpaper.dim.clamp(0.0, 0.9);
     storage::save_settings(&app, &settings)?;
     *app.state::<AppState>().settings.lock().unwrap() = settings.clone();
 
     if let Some(widget) = app.get_webview_window("widget") {
-        window_ops::apply_position(&widget, &settings)?;
+        if settings.widget_visible {
+            apply_layout(&app, &widget, &settings)?;
+        }
         window_ops::apply_click_through(&widget, settings.click_through)?;
-        tray::apply_widget_state(&app, &settings, settings.widget_visible);
     }
+    tray::apply_widget_state(&app, &settings);
     window_ops::send_settings(&app, &settings);
     Ok(settings)
+}
+
+fn apply_layout(
+    app: &AppHandle,
+    widget: &tauri::WebviewWindow,
+    settings: &Settings,
+) -> Result<(), String> {
+    let columns = app.state::<AppState>().columns();
+    let rect = window_ops::apply_position(widget, settings, columns)?;
+    window_ops::emit_layout(app, &rect);
+    Ok(())
+}
+
+/// The widget reports how many columns it actually renders (1 / 5 / 7) so the
+/// native window can shrink or grow and stay anchored by `settings.align`.
+#[command]
+pub fn set_layout_columns(app: AppHandle, columns: u32) -> Result<(), String> {
+    let state = app.state::<AppState>();
+    if state.columns() == columns {
+        return Ok(());
+    }
+    state.set_columns(columns);
+    let settings = state.with_settings(|s| s.clone());
+    if let Some(widget) = app.get_webview_window("widget") {
+        apply_layout(&app, &widget, &settings)?;
+    }
+    Ok(())
 }
 
 #[command]
@@ -69,10 +93,8 @@ pub fn import_schedule_from_path(app: AppHandle, path: String) -> Result<Value, 
     }
     let value: Value = serde_json::from_str(&text).map_err(|e| e.to_string())?;
     storage::store_schedule(&app, &value)?;
-    Ok(json!({
-        "report": report,
-        "schedule": value
-    }))
+    notify_schedule(&app, &value);
+    Ok(json!({ "report": report, "schedule": value }))
 }
 
 #[command]
@@ -81,21 +103,23 @@ pub fn validate_schedule_text(text: String) -> crate::schedule::ValidationReport
 }
 
 #[command]
-pub fn export_template(_app: AppHandle, path: String) -> Result<(), String> {
+pub fn export_template(path: String) -> Result<(), String> {
     let value = crate::schedule::template();
     let text = serde_json::to_string_pretty(&value).map_err(|e| e.to_string())?;
     storage::write_atomic(
         &std::path::PathBuf::from(&path),
         format!("{text}\n").into_bytes().as_slice(),
     )
-    .map_err(|e| format!("导出失败: {e}"))?;
-    Ok(())
+    .map_err(|e| format!("导出失败: {e}"))
 }
 
 #[command]
 pub fn clear_schedule(app: AppHandle) -> Result<(), String> {
     let path = storage::schedule_path(&app);
-    std::fs::remove_file(path).map_err(|e| format!("删除失败: {e}"))?;
+    if path.exists() {
+        std::fs::remove_file(path).map_err(|e| format!("删除失败: {e}"))?;
+    }
+    notify_schedule(&app, &Value::Null);
     Ok(())
 }
 
@@ -106,31 +130,17 @@ pub fn open_settings_window(app: AppHandle) {
 
 #[command]
 pub fn apply_widget(app: AppHandle) -> Result<(), String> {
-    let state = app.state::<AppState>();
-    let settings = state.with_settings(|s| s.clone());
-    if let Some(widget) = app.get_webview_window("widget") {
-        window_ops::apply_position(&widget, &settings)?;
-        window_ops::apply_click_through(&widget, settings.click_through)?;
-        if settings.widget_visible {
-            window_ops::apply_visibility(&widget, true)?;
-            tray::pin_to_desktop(&widget);
-        }
-    }
+    let settings = app.state::<AppState>().with_settings(|s| s.clone());
+    tray::apply_widget_state(&app, &settings);
     Ok(())
 }
 
 #[command]
 pub fn set_widget_visible(app: AppHandle, visible: bool) -> Result<(), String> {
     let state = app.state::<AppState>();
-    {
-        let mut guard = state.settings.lock().unwrap();
-        guard.widget_visible = visible;
-        let settings = guard.clone();
-        drop(guard);
-        tray::apply_widget_state(&app, &settings, visible);
-        storage::save_settings(&app, &settings)?;
-    }
-    let settings = state.with_settings(|s| s.clone());
+    let settings = state.update(|guard| guard.widget_visible = visible);
+    storage::save_settings(&app, &settings)?;
+    tray::apply_widget_state(&app, &settings);
     window_ops::send_settings(&app, &settings);
     Ok(())
 }
@@ -138,31 +148,28 @@ pub fn set_widget_visible(app: AppHandle, visible: bool) -> Result<(), String> {
 #[command]
 pub fn set_click_through(app: AppHandle, enabled: bool) -> Result<(), String> {
     let state = app.state::<AppState>();
-    {
-        let mut guard = state.settings.lock().unwrap();
-        guard.click_through = enabled;
-        let settings = guard.clone();
-        drop(guard);
-        if let Some(widget) = app.get_webview_window("widget") {
-            tray::apply_click_through_state(&widget, enabled);
-        }
-        storage::save_settings(&app, &settings)?;
+    let settings = state.update(|guard| guard.click_through = enabled);
+    if let Some(widget) = app.get_webview_window("widget") {
+        tray::apply_click_through_state(&widget, enabled);
     }
-    let settings = state.with_settings(|s| s.clone());
+    storage::save_settings(&app, &settings)?;
     window_ops::send_settings(&app, &settings);
     Ok(())
 }
 
 #[command]
-pub fn save_custom_css(app: AppHandle, container: String, course: String, enabled: bool) -> Result<(), String> {
+pub fn save_custom_css(
+    app: AppHandle,
+    container: String,
+    course: String,
+    enabled: bool,
+) -> Result<(), String> {
     let state = app.state::<AppState>();
-    let settings = {
-        let mut guard = state.settings.lock().unwrap();
+    let settings = state.update(|guard| {
         guard.css.container = container;
         guard.css.course = course;
         guard.css.enabled = enabled;
-        guard.clone()
-    };
+    });
     storage::save_settings(&app, &settings)?;
     window_ops::send_settings(&app, &settings);
     Ok(())
@@ -170,33 +177,81 @@ pub fn save_custom_css(app: AppHandle, container: String, course: String, enable
 
 #[command]
 pub fn get_monitors(app: AppHandle) -> Result<Vec<MonitorInfo>, String> {
-    monitor_list(&app)
+    geometry::monitor_list(&app)
 }
 
 #[command]
 pub fn get_widget_window_state(app: AppHandle) -> Result<WidgetSize, String> {
-    let state = app.state::<AppState>();
-    let settings = state.with_settings(|s| s.clone());
-    let widget = app
-        .get_webview_window("widget")
-        .ok_or("组件窗口不存在")?;
-    Ok(widget_size(&widget, &settings))
+    let settings = app.state::<AppState>().with_settings(|s| s.clone());
+    Ok(geometry::widget_size(&app, &settings))
 }
 
 #[command]
-pub fn set_widget_position(app: AppHandle, x: f64, y: f64, monitor: Option<String>) -> Result<(), String> {
+pub fn get_widget_rect(app: AppHandle) -> Result<crate::models::WidgetRect, String> {
     let state = app.state::<AppState>();
-    let settings = {
-        let mut guard = state.settings.lock().unwrap();
+    let settings = state.with_settings(|s| s.clone());
+    let monitors = geometry::monitor_list(&app)?;
+    Ok(geometry::rect(&monitors, &settings, state.columns()))
+}
+
+#[command]
+pub fn get_wallpaper(app: AppHandle) -> Result<WallpaperInfo, String> {
+    let settings = app.state::<AppState>().with_settings(|s| s.clone());
+    Ok(wallpaper::load(&settings.wallpaper))
+}
+
+#[command]
+pub fn import_wallpaper(app: AppHandle, path: String) -> Result<WallpaperInfo, String> {
+    let info = wallpaper::import(&app, &path)?;
+    let custom = info.path.clone();
+    let state = app.state::<AppState>();
+    let settings = state.update(|guard| {
+        guard.wallpaper.mode = "custom".into();
+        guard.wallpaper.custom_path = custom.clone();
+    });
+    storage::save_settings(&app, &settings)?;
+    emit_wallpaper(&app, &info);
+    window_ops::send_settings(&app, &settings);
+    Ok(info)
+}
+
+#[command]
+pub fn set_wallpaper_mode(app: AppHandle, mode: String) -> Result<WallpaperInfo, String> {
+    let state = app.state::<AppState>();
+    let settings = state.update(|guard| {
+        guard.wallpaper.mode = if mode == "custom" { "custom" } else { "system" }.into();
+    });
+    storage::save_settings(&app, &settings)?;
+    let info = wallpaper::load(&settings.wallpaper);
+    emit_wallpaper(&app, &info);
+    window_ops::send_settings(&app, &settings);
+    Ok(info)
+}
+
+fn emit_wallpaper(app: &AppHandle, info: &WallpaperInfo) {
+    use tauri::Emitter;
+    if let Some(window) = app.get_webview_window("widget") {
+        let _ = window.emit("wallpaper-changed", info);
+    }
+}
+
+#[command]
+pub fn set_widget_position(
+    app: AppHandle,
+    x: f64,
+    y: f64,
+    monitor: Option<String>,
+) -> Result<(), String> {
+    let state = app.state::<AppState>();
+    let settings = state.update(|guard| {
         guard.position.x = x;
         guard.position.y = y;
         if monitor.is_some() {
             guard.position.monitor = monitor;
         }
-        guard.clone()
-    };
+    });
     if let Some(widget) = app.get_webview_window("widget") {
-        window_ops::apply_position(&widget, &settings)?;
+        apply_layout(&app, &widget, &settings)?;
     }
     storage::save_settings(&app, &settings)?;
     window_ops::send_settings(&app, &settings);
@@ -206,52 +261,21 @@ pub fn set_widget_position(app: AppHandle, x: f64, y: f64, monitor: Option<Strin
 #[command]
 pub fn set_widget_size(app: AppHandle, scale: f64) -> Result<(), String> {
     let state = app.state::<AppState>();
-    let settings = {
-        let mut guard = state.settings.lock().unwrap();
-        guard.scale = scale.clamp(0.3, 2.0);
-        guard.clone()
-    };
+    let settings = state.update(|guard| guard.scale = scale.clamp(0.3, 2.0));
     if let Some(widget) = app.get_webview_window("widget") {
-        window_ops::apply_position(&widget, &settings)?;
+        apply_layout(&app, &widget, &settings)?;
     }
     storage::save_settings(&app, &settings)?;
     window_ops::send_settings(&app, &settings);
     Ok(())
 }
 
-pub fn monitor_list(app: &AppHandle) -> Result<Vec<MonitorInfo>, String> {
-    let window = app
-        .get_webview_window("widget")
-        .ok_or("组件窗口不存在")?;
-    let monitors = window
-        .available_monitors()
-        .map_err(|e| format!("获取显示器失败: {e}"))?;
-    let primary = window
-        .primary_monitor()
-        .map_err(|e| format!("获取主显示器失败: {e}"))?
-        .ok_or("没有可用显示器")?;
-
-    Ok(monitors
-        .iter()
-        .map(|monitor| {
-            let name: String = monitor
-                .name()
-                .clone()
-                .map(|value| value.to_string())
-                .unwrap_or_else(|| "主显示器".to_string());
-            MonitorInfo {
-                is_primary: monitor.name() == primary.name(),
-                name: name.clone(),
-                label: name.clone(),
-                width: monitor.size().width as f64,
-                height: monitor.size().height as f64,
-            }
-        })
-        .collect())
-}
-
-pub fn widget_size(widget: &tauri::WebviewWindow, settings: &Settings) -> WidgetSize {
-    let (width, height) = window_ops::widget_logical_size(settings);
-    let _ = widget;
-    WidgetSize { width, height }
+fn notify_schedule(app: &AppHandle, value: &Value) {
+    use tauri::Emitter;
+    if let Some(window) = app.get_webview_window("widget") {
+        let _ = window.emit("schedule-changed", value);
+    }
+    if let Some(window) = app.get_webview_window("settings") {
+        let _ = window.emit("schedule-changed", value);
+    }
 }

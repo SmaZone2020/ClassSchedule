@@ -1,75 +1,185 @@
 :root {
-  --panel-bg: rgba(255, 255, 255, 0.14);
-  --panel-border: rgba(255, 255, 255, 0.22);
-  --text: rgba(255, 255, 255, 0.94);
-  --text-dim: rgba(255, 255, 255, 0.66);
-  --card-bg: rgba(255, 255, 255, 0.12);
-  --card-text: rgba(255, 255, 255, 0.95);
-  --card-loc: rgba(255, 255, 255, 0.62);
+  --panel-tint: 16, 20, 30;
+  --panel-opacity: 0.62;
+  --panel-border: rgba(255, 255, 255, 0.18);
+  --text: rgba(255, 255, 255, 0.95);
+  --text-dim: rgba(255, 255, 255, 0.62);
+  --card-bg: rgba(255, 255, 255, 0.10);
+  --card-text: rgba(255, 255, 255, 0.96);
+  --card-loc: rgba(255, 255, 255, 0.60);
   --accent: #4f8ef7;
   --panel-radius: 20px;
-  --panel-opacity: 0.62;
   --panel-blur: 18px;
   --panel-gap: 6px;
+  --course-color: #4f8ef7;
+  --course-soft: rgba(79, 142, 247, 0.22);
+  --course-glow: rgba(79, 142, 247, 0.08);
 }
 
-html, body {
+@media (prefers-color-scheme: light) {
+  :root {
+    --panel-tint: 250, 251, 255;
+    --panel-border: rgba(255, 255, 255, 0.55);
+    --text: rgba(24, 30, 46, 0.94);
+    --text-dim: rgba(24, 30, 46, 0.58);
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --card-text: rgba(24, 30, 46, 0.94);
+    --card-loc: rgba(24, 30, 46, 0.55);
+  }
+}
+
+:root[data-theme="dark"] {
+  --panel-tint: 16, 20, 30;
+  --panel-border: rgba(255, 255, 255, 0.18);
+  --text: rgba(255, 255, 255, 0.95);
+  --text-dim: rgba(255, 255, 255, 0.62);
+  --card-bg: rgba(255, 255, 255, 0.10);
+  --card-text: rgba(255, 255, 255, 0.96);
+  --card-loc: rgba(255, 255, 255, 0.60);
+}
+
+:root[data-theme="light"] {
+  --panel-tint: 250, 251, 255;
+  --panel-border: rgba(255, 255, 255, 0.55);
+  --text: rgba(24, 30, 46, 0.94);
+  --text-dim: rgba(24, 30, 46, 0.58);
+  --card-bg: rgba(255, 255, 255, 0.55);
+  --card-text: rgba(24, 30, 46, 0.94);
+  --card-loc: rgba(24, 30, 46, 0.55);
+}
+
+html,
+body {
   margin: 0;
   padding: 0;
   background: transparent;
-  overflow: hidden;
   font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+.widget-body {
+  overflow: hidden;
+  color: var(--text);
   user-select: none;
   -webkit-user-select: none;
 }
 
-.widget-body {
-  color: var(--text);
-}
-
+/* The widget root is sized in base units and scaled to the native window. */
 .schedule-root {
-  position: fixed;
-  inset: 0;
-  display: flex;
   transform-origin: top left;
   transform: scale(var(--scale, 1));
+  display: flex;
+  position: relative;
+}
+
+/*
+ * Desktop wallpaper crop behind the widget. `.wallpaper-image` is painted at
+ * monitor size and offset by the widget's screen position, so it lines up with
+ * the real desktop wallpaper; only this layer is blurred.
+ */
+.wallpaper-clip {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
   pointer-events: none;
+  z-index: 0;
+}
+
+.wallpaper-blur {
+  position: absolute;
+  will-change: filter;
+}
+
+.wallpaper-photo {
+  position: absolute;
+}
+
+.wallpaper-dim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.panel-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
 }
 
 .schedule-panel {
   position: relative;
-  margin: auto;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 14px;
   border-radius: var(--panel-radius);
-  background: var(--panel-bg);
-  backdrop-filter: blur(var(--panel-blur)) saturate(150%);
-  -webkit-backdrop-filter: blur(var(--panel-blur)) saturate(150%);
+  background: rgba(var(--panel-tint), var(--panel-tint-alpha, 0.62));
   border: 1px solid var(--panel-border);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.26);
   overflow: hidden;
+}
+
+.panel-shell.has-wallpaper > .schedule-panel {
+  background: rgba(var(--panel-tint), var(--panel-tint-alpha));
+  box-shadow: none;
+}
+
+.panel-shell.has-wallpaper {
+  border-radius: var(--panel-radius);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
 }
 
 .schedule-header {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
   padding: 0 4px;
+  flex-shrink: 0;
 }
 
 .schedule-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .schedule-week {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-dim);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.week-nav {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--panel-border);
+  border-radius: 7px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.week-nav:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.week-nav:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
 
 .schedule-days {
@@ -77,6 +187,20 @@ html, body {
   display: grid;
   gap: var(--panel-gap);
   min-height: 0;
+}
+
+.schedule-days.single {
+  grid-template-columns: 1fr;
+}
+
+.schedule-days.single .course-card {
+  flex: 0 0 auto;
+  min-height: 72px;
+}
+
+.schedule-days.single .day-head {
+  font-size: 13px;
+  padding: 4px 0;
 }
 
 .schedule-day {
@@ -89,9 +213,10 @@ html, body {
 
 .day-head {
   text-align: center;
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-dim);
-  padding: 2px 0;
+  padding: 1px 0;
+  flex-shrink: 0;
 }
 
 .day-head.today {
@@ -104,39 +229,51 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: var(--panel-gap);
-}
-
-.course-card {
-  border-radius: 12px;
-  padding: 8px 9px;
-  color: var(--card-text);
-  background: var(--card-bg);
-  backdrop-filter: blur(6px);
-  overflow: hidden;
   min-height: 0;
 }
 
+.course-card {
+  flex: 1 1 0;
+  min-height: 0;
+  box-sizing: border-box;
+  border-radius: 12px;
+  padding: 7px 9px;
+  color: var(--card-text);
+  background: linear-gradient(
+    150deg,
+    var(--course-soft),
+    var(--course-glow) 62%,
+    transparent
+  ), var(--card-bg);
+  border-left: 3px solid var(--course-color);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  overflow: hidden;
+}
+
 .course-card.finished {
-  opacity: 0.42;
+  opacity: 0.4;
 }
 
 .course-card.current {
-  outline: 1.5px solid var(--accent);
+  box-shadow: 0 0 0 1.5px var(--accent);
 }
 
 .course-name {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.22;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  word-break: break-word;
 }
 
-.course-meta {
+.course-meta,
+.course-time {
   margin-top: 3px;
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--card-loc);
   overflow: hidden;
   white-space: nowrap;
@@ -145,8 +282,7 @@ html, body {
 
 .course-time {
   margin-top: 2px;
-  font-size: 10px;
-  color: var(--card-loc);
+  font-size: 9.5px;
 }
 
 .empty-day {
@@ -154,10 +290,11 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-dim);
   border: 1px dashed var(--panel-border);
   border-radius: 12px;
+  min-height: 0;
 }
 
 .week-break {
@@ -166,20 +303,27 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   color: var(--text-dim);
-  font-size: 13px;
+  font-size: 12.5px;
+  text-align: center;
+  padding: 0 16px;
 }
 
 .week-break strong {
   color: var(--text);
   font-size: 15px;
+  font-weight: 600;
 }
 
 .settings-body {
   background: #f4f6fa;
   color: #1c2333;
-  overflow: auto;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .settings-shell {
@@ -222,7 +366,9 @@ html, body {
 .settings-hint {
   font-size: 12px;
   color: #7a8399;
-  margin: 4px 0 0;
+  margin: 6px 0 0;
+  line-height: 1.6;
+  word-break: break-all;
 }
 
 .settings-grid {
@@ -238,6 +384,7 @@ input[type="range"] {
 
 input[type="number"],
 input[type="text"],
+input[type="time"],
 select {
   padding: 6px 10px;
   border: 1px solid #d6dbe7;
@@ -245,6 +392,11 @@ select {
   font-size: 13px;
   background: #fff;
   color: inherit;
+  font-family: inherit;
+}
+
+input[type="number"] {
+  width: 84px;
 }
 
 button.primary {
@@ -257,7 +409,9 @@ button.primary {
   cursor: pointer;
 }
 
-button.primary:disabled {
+button.primary:disabled,
+button.secondary:disabled,
+button.danger:disabled {
   opacity: 0.5;
   cursor: default;
 }
@@ -300,7 +454,7 @@ textarea.css-editor {
   font-size: 12px;
   font-weight: 600;
   color: #5a6478;
-  margin: 10px 0 6px;
+  margin: 12px 0 6px;
 }
 
 .report-box {
@@ -308,7 +462,8 @@ textarea.css-editor {
   padding: 10px 14px;
   border-radius: 10px;
   font-size: 12.5px;
-  line-height: 1.6;
+  line-height: 1.7;
+  word-break: break-all;
 }
 
 .report-box.ok {
@@ -330,47 +485,26 @@ textarea.css-editor {
   font-size: 12px;
   background: #eef1f8;
   color: #5a6478;
+  font-weight: 400;
 }
 
-.theme-toggle {
+.swatch-row {
   display: flex;
-  gap: 0;
-  border: 1px solid #d6dbe7;
-  border-radius: 9px;
-  overflow: hidden;
+  gap: 6px;
 }
 
-.theme-toggle button {
-  border: none;
-  padding: 6px 14px;
-  background: #fff;
+.swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 12.5px;
-  color: #5a6478;
+  padding: 0;
 }
 
-.theme-toggle button.active {
-  background: var(--accent, #4f8ef7);
-  color: #fff;
+.swatch.active {
+  border: 2px solid #1c2333;
 }
 
-.segmented {
-  display: flex;
+.swatch.idle {
   border: 1px solid #d6dbe7;
-  border-radius: 9px;
-  overflow: hidden;
-}
-
-.segmented button {
-  border: none;
-  padding: 6px 14px;
-  background: #fff;
-  cursor: pointer;
-  font-size: 12.5px;
-  color: #5a6478;
-}
-
-.segmented button.active {
-  background: var(--accent, #4f8ef7);
-  color: #fff;
 }

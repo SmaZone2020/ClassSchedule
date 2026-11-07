@@ -1,60 +1,3 @@
-export interface Periods {
-  start: number;
-  end: number;
-}
-
-export interface Session {
-  periods: Periods | string;
-  periodLabel?: string;
-  course: string;
-  courseShort?: string;
-  location?: string;
-}
-
-export interface Day {
-  weekday: string;
-  date: string;
-  dayOfMonth?: string;
-  sessions: Session[];
-}
-
-export interface Week {
-  week: number;
-  startDate: string;
-  endDate: string;
-  days: Day[];
-}
-
-export interface CourseInfo {
-  name: string;
-  shortName?: string;
-  sessionCount?: number;
-  locations?: string[];
-}
-
-export interface ScheduleMeta {
-  semester?: string;
-  source?: string;
-  periodRule?: string;
-  note?: string;
-}
-
-export interface Schedule {
-  meta?: ScheduleMeta;
-  courses?: CourseInfo[];
-  weeks: Week[];
-  sessions?: ScheduleSession[];
-}
-
-export interface ScheduleSession {
-  week: number;
-  date: string;
-  weekday: string;
-  periods: string;
-  course: string;
-  location?: string;
-}
-
 export interface Position {
   monitor?: string | null;
   x: number;
@@ -83,25 +26,45 @@ export interface CustomCss {
   course: string;
 }
 
+export interface WallpaperSettings {
+  mode: "system" | "custom";
+  customPath: string | null;
+  dim: number;
+}
+
+export interface WallpaperInfo {
+  dataUrl: string | null;
+  style: "fill" | "fit" | "stretch" | "center" | "tile" | "span";
+  source: "system" | "custom";
+  path: string | null;
+  error: string | null;
+}
+
+export type DaysMode = "auto" | "5" | "7" | "today";
+export type AlignMode = "left" | "right" | "auto";
+
 export interface Settings {
   position: Position;
   scale: number;
-  daysMode: "auto" | "5" | "7";
+  daysMode: DaysMode;
+  align: AlignMode;
   clickThrough: boolean;
   desktopPin: boolean;
   theme: "auto" | "light" | "dark";
   accent: string;
   style: "frosted" | "liquid";
   panel: PanelStyle;
-  systemAcrylic: boolean;
   periods: PeriodTime[];
   css: CustomCss;
+  wallpaper: WallpaperSettings;
   widgetVisible: boolean;
 }
 
 export interface MonitorInfo {
   name: string;
   label: string;
+  x: number;
+  y: number;
   width: number;
   height: number;
   isPrimary: boolean;
@@ -112,12 +75,22 @@ export interface WidgetSize {
   height: number;
 }
 
+/** Widget rectangle in logical px relative to the monitor origin. */
+export interface WidgetRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface AppData {
   settings: Settings;
   schedule: Schedule | null;
   scheduleError: string | null;
   monitors: MonitorInfo[];
   widgetSize: WidgetSize;
+  rect: WidgetRect;
+  wallpaper: WallpaperInfo;
   configDir: string;
 }
 
@@ -128,4 +101,45 @@ export interface ValidationReport {
   weeks: number;
   sessions: number;
   warnings: string[];
+}
+
+export interface ScheduleMeta {
+  semester?: string;
+  [key: string]: unknown;
+}
+
+export interface CourseInfo {
+  name: string;
+  shortName?: string;
+  color?: string;
+  [key: string]: unknown;
+}
+
+export interface Session {
+  periods: unknown;
+  course: string;
+  courseShort?: string;
+  location?: string;
+  [key: string]: unknown;
+}
+
+export interface Day {
+  weekday: string;
+  date: string;
+  dayOfMonth?: string;
+  sessions: Session[];
+}
+
+export interface Week {
+  week: number;
+  startDate: string;
+  endDate?: string;
+  days: Day[];
+}
+
+export interface Schedule {
+  meta?: ScheduleMeta;
+  courses?: CourseInfo[];
+  weeks?: Week[];
+  sessions?: unknown[];
 }

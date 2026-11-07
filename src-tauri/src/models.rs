@@ -82,19 +82,48 @@ impl Default for CustomCss {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase", default)]
+pub struct WallpaperSettings {
+    pub mode: String,
+    pub custom_path: Option<String>,
+    pub dim: f64,
+}
+
+impl Default for WallpaperSettings {
+    fn default() -> Self {
+        Self {
+            mode: "system".into(),
+            custom_path: None,
+            dim: 0.12,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WallpaperInfo {
+    pub data_url: Option<String>,
+    pub style: String,
+    pub source: String,
+    pub path: Option<String>,
+    pub error: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase", default)]
 pub struct Settings {
     pub position: Position,
     pub scale: f64,
     pub days_mode: String,
+    pub align: String,
     pub click_through: bool,
     pub desktop_pin: bool,
     pub theme: String,
     pub accent: String,
     pub style: String,
     pub panel: PanelStyle,
-    pub system_acrylic: bool,
     pub periods: Vec<PeriodTime>,
     pub css: CustomCss,
+    pub wallpaper: WallpaperSettings,
     pub widget_visible: bool,
 }
 
@@ -126,25 +155,28 @@ impl Default for Settings {
             position: Position::default(),
             scale: 1.0,
             days_mode: "auto".into(),
+            align: "auto".into(),
             click_through: true,
             desktop_pin: true,
             theme: "auto".into(),
             accent: "#4f8ef7".into(),
             style: "frosted".into(),
             panel: PanelStyle::default(),
-            system_acrylic: true,
             periods: default_periods(),
             css: CustomCss::default(),
+            wallpaper: WallpaperSettings::default(),
             widget_visible: true,
         }
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MonitorInfo {
     pub name: String,
     pub label: String,
+    pub x: f64,
+    pub y: f64,
     pub width: f64,
     pub height: f64,
     pub is_primary: bool,
@@ -158,12 +190,24 @@ pub struct AppData {
     pub schedule_error: Option<String>,
     pub monitors: Vec<MonitorInfo>,
     pub widget_size: WidgetSize,
+    pub rect: WidgetRect,
+    pub wallpaper: WallpaperInfo,
     pub config_dir: String,
 }
 
 #[derive(Serialize, Clone, Copy)]
 #[serde(rename_all = "camelCase")]
 pub struct WidgetSize {
+    pub width: f64,
+    pub height: f64,
+}
+
+/// Actual widget rectangle in logical pixels relative to its monitor origin.
+#[derive(Serialize, Clone, Copy, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct WidgetRect {
+    pub x: f64,
+    pub y: f64,
     pub width: f64,
     pub height: f64,
 }
