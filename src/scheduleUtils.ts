@@ -131,7 +131,10 @@ export function weekHasSessions(week: Week | null): boolean {
 export function weekFinished(week: Week | null, settings: Settings, now: Date): boolean {
   if (!week || !weekHasSessions(week)) return false;
   const today = isoDate(now);
+  // Only days that actually hold a class can keep the week "running". An empty
+  // Saturday/Sunday must not stop the notice on a weekend.
   return week.days.every((day) => {
+    if (day.sessions.length === 0) return true;
     if (day.date < today) return true;
     if (day.date > today) return false;
     return day.sessions.every((session) => sessionEnded(session, settings, now));
