@@ -12,7 +12,7 @@ import {
 import { blockAt, periodAtPoint, periodBounds, rowOfPeriod, rowMetrics } from "./gridHit";
 import { useElementHeight } from "./useElementHeight";
 import EditCard from "./EditCard";
-import type { SessionRef } from "../scheduleEdit";
+import { maxEndAt, rangeFree, type SessionRef } from "../scheduleEdit";
 
 export interface Slot {
   date: string;
@@ -99,8 +99,79 @@ export default function DayColumn({
       ? blockAt(metrics, rowOfPeriod(model.rows, hoverPeriod) ?? 0, 1)
       : null;
 
+  const selectionBlock = selection
+    ? blockAt(
+        metrics,
+        rowOfPeriod(model.rows, selection.start) ?? 0,
+        (rowOfPeriod(model.rows, selection.end) ?? 0) -
+          (rowOfPeriod(model.rows, selection.start) ?? 0) +
+          1
+      )
+    : null;
+
+  /**
+   * Grow the selection from the anchor towards the pointer, stopping at the
+   * first occupied period so a sweep never swallows an existing course.
+   */
+  const sweep = (anchor: number, target: number) => {
+    let start = Math.min(anchor, target);
+    let end = Math.max(anchor, target);
+    if (target >= anchor) {
+      while (end > anchor && !rangeFree(day.sessions, anchor, end)) end -= 1;
+    } else {
+      while (start < anchor && !rangeFree(day.sessions, start, anchor)) start += 1;
+    }
+    if (!rangeFree(day.sessions, start, end)) return null;
+    return { start, end };
+  };
+
+  const beginSelect = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!editing || dragRef || event.button !== 0) return;
+    const target = event.target as HTMLElement;
+    if (target.closest(".course-card")) return;
+    const grid = gridRef.current;
+    if (!grid) return;
+    const period = periodAtPoint(grid, model.rows, event.clientY);
+    if (period === null || !rangeFree(day.sessions, period, period)) return;
+
+    event.preventDefault();
+    const anchor = period;
+    const startX = event.clientX;
+    const startY = event.clientY;
+    let current = { start: anchor, end: anchor };
+
+    const onMove = (move: PointerEvent) => {
+      if (Math.abs(move.clientX - startX) + Math.abs(move.clientY - startY) < 4) return;
+      const next = periodAtPoint(grid, model.rows, move.clientY);
+      if (next === null) return;
+      const range = sweep(anchor, next);
+      if (!range) return;
+      current = range;
+      setSelection(range);
+    };
+
+    const onUp = () => {
+      selecting.current?.detach();
+      selecting.current = null;
+      setSelection(null);
+      if (current.start > 0) {
+        onCreateAt({ date: day.date, start: current.start, end: current.end });
+      }
+    };
+
+    const detach = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+    selecting.current = { anchor, detach };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+  };
+
   const handleMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!editing || dragRef) return;
+    if (!editing || dragRef || selecting.current) return;
     const target = event.target as HTMLElement;
     if (target.closest(".course-card")) {
       if (hoverPeriod !== null) setHoverPeriod(null);
@@ -108,8 +179,11 @@ export default function DayColumn({
     }
     const grid = gridRef.current;
     if (!grid) return;
-    const period = periodAt(grid, model.rows, metrics, event.clientY);
-    if (period !== null && period !== hoverPeriod) setHoverPeriod(period);
+    // Measure the live grid: the memoised metrics can lag one frame behind.
+    const period = periodAtPoint(grid, model.rows, event.clientY);
+    const free = period !== null && rangeFree(day.sessions, period, period);
+    const next = free ? period : null;
+    if (next !== hoverPeriod) setHoverPeriod(next);
   };
 
   const handleContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -154,6 +228,7 @@ export default function DayColumn({
         ref={gridRef}
         className={`day-grid${editing ? " editing" : ""}`}
         style={{ gridTemplateRows: model.template }}
+        onPointerDown={beginSelect}
         onPointerMove={handleMove}
         onPointerLeave={() => setHoverPeriod(null)}
         onContextMenu={handleContextMenu}
@@ -175,6 +250,13 @@ export default function DayColumn({
           <div
             className="slot-preview"
             style={{ top: hoverBlock.top, height: hoverBlock.height }}
+          />
+        )}
+
+        {selectionBlock && (
+          <div
+            className="slot-preview selecting"
+            style={{ top: selectionBlock.top, height: selectionBlock.height }}
           />
         )}
 
@@ -201,6 +283,7 @@ export default function DayColumn({
                 now={now}
                 rows={model.rows}
                 metrics={metrics}
+                limitEnd={Math.min(bounds.max, maxEndAt(day.sessions, card.start, index))}
                 dragging={dragRef?.date === day.date && dragRef?.index === index}
                 onOpen={onOpenEditor}
                 onDelete={onDelete}
