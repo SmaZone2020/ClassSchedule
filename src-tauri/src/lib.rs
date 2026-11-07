@@ -9,6 +9,7 @@ mod storage;
 mod tray;
 mod wallpaper;
 mod window_ops;
+mod xiqueer;
 
 use tauri::Manager;
 
@@ -50,6 +51,7 @@ pub fn run() {
             }
         })
         .manage(tray::AppState::new(Settings::default()))
+        .manage(xiqueer::XiqueerState::default())
         .invoke_handler(tauri::generate_handler![
             commands::get_app_data,
             commands::get_settings,
@@ -75,7 +77,11 @@ pub fn run() {
             commands::set_widget_position,
             commands::set_widget_size,
             commands::get_font_catalog,
-            commands::set_font_dir
+            commands::set_font_dir,
+            xiqueer::xiqueer_app_version,
+            xiqueer::xiqueer_search_schools,
+            xiqueer::xiqueer_login,
+            xiqueer::xiqueer_import,
         ])        .on_window_event(|window, event| {
             if window.label() == "settings" {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event {
