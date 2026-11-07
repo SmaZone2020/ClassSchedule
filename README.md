@@ -125,9 +125,11 @@ npm run icons       # 重新生成应用图标
 构建产物位于 `src-tauri/target/release/`：
 
 ```
-ClassScheduleWidget.exe                       免安装可执行文件
-bundle/nsis/ClassScheduleWidget_*_x64-setup.exe   安装包
+ClassScheduleWidget.exe                              免安装可执行文件
+bundle/nsis/ClassScheduleWidget_*_x64-setup.exe      安装包
 ```
+
+主二进制名由 `src-tauri/tauri.conf.json` 的 `mainBinaryName` 决定；不设置时它等于 Cargo 包名 `class-schedule-widget`。
 
 ## 课表格式
 
