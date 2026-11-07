@@ -7,3 +7,7 @@ src-tauri/gen/
 .vscode/
 .idea/
 /liquid-glass-react-master
+xiqueer_timetable.py
+/__pycache__
+课表.json
+AGENT.md
