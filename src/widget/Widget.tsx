@@ -49,6 +49,12 @@ export default function Widget() {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const wheelAt = useRef(0);
   const goDayRef = useRef<(delta: 1 | -1) => void>(() => {});
+  const editingRef = useRef(false);
+  const snapshot = useRef<Schedule | null>(null);
+  const scheduleRef = useRef<Schedule | null>(null);
+  const exitEditingRef = useRef<(save: boolean) => void>(() => {});
+  editingRef.current = editing;
+  scheduleRef.current = schedule;
 
   useEffect(() => {
     if (settings) applyTheme(settings.theme);
@@ -64,7 +70,8 @@ export default function Widget() {
     setDayOffset(0);
     setViewDate(null);
     setDetail(null);
-    setEditing(false);
+    setMenu(null);
+    if (editingRef.current) exitEditingRef.current?.(true);
   }, [settings?.clickThrough]);
 
   // The webview's own menu is never useful here; text fields keep theirs so
@@ -110,8 +117,10 @@ export default function Widget() {
   }, [weekOffset, dayOffset, viewDate]);
 
   const commit = (next: Schedule) => {
+    // While editing, every action stays local. The schedule is only written to
+    // disk when the user leaves edit mode with the check button; Esc discards.
     setSchedule(next);
-    invoke("save_schedule", { schedule: next }).catch(() => {});
+    if (!editingRef.current) invoke("save_schedule", { schedule: next }).catch(() => {});
   };
 
   const editor = useScheduleEditor({
@@ -130,6 +139,63 @@ export default function Widget() {
       if (needsKeyboard) invoke("set_widget_editable", { editable: false }).catch(() => {});
     };
   }, [needsKeyboard]);
+
+  const toggleEditing = () => {
+    if (editing) {
+      exitEditing(true);
+      return;
+    }
+    snapshot.current = schedule;
+    setEditing(true);
+    setMenu(null);
+    editor.closeEditor();
+    setDetail(null);
+  };
+
+  /**
+   * Leave edit mode. `save` writes the working copy to disk; `false` restores
+   * the snapshot taken when editing started, so Esc discards every change.
+   */
+  const exitEditing = (save: boolean) => {
+    editor.cancelDrag();
+    editor.closeEditor();
+    setEditing(false);
+    setDetail(null);
+    setMenu(null);
+    if (save) {
+      const current = scheduleRef.current;
+      if (current) invoke("save_schedule", { schedule: current }).catch(() => {});
+    } else if (snapshot.current) {
+      setSchedule(snapshot.current);
+    }
+    snapshot.current = null;
+  };
+  exitEditingRef.current = exitEditing;
+
+  // Must stay above the early return: a hook after it would change the hook
+  // count between the loading render and the first real one.
+  useEffect(() => {
+    if (!editing) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      // The menu owns Esc while it is open.
+      if (menuRef.current) {
+        setMenu(null);
+        return;
+      }
+      // A single Esc first closes the form, a second one leaves edit mode.
+      if (editor.editor) {
+        editor.closeEditor();
+        return;
+      }
+      exitEditingRef.current(false);
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [editing, editor.editor]);
+
   const goDay = (delta: 1 | -1) => {
     if (!settings || !model) return;
     const base =
@@ -222,12 +288,6 @@ export default function Widget() {
     setDirection(delta);
     setDayOffset(0);
     setWeekOffset((value) => value + delta);
-  };
-
-  const toggleEditing = () => {
-    setEditing((value) => !value);
-    editor.closeEditor();
-    setDetail(null);
   };
 
   const openEditorAt = (ref: { date: string; index: number }) => {
