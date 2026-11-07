@@ -4,4 +4,6 @@ export { default as ArrowsExpandVertical } from "@gravity-ui/icons/ArrowsExpandV
 export { default as Calendar } from "@gravity-ui/icons/Calendar";
 export { default as Check } from "@gravity-ui/icons/Check";
 export { default as Pencil } from "@gravity-ui/icons/Pencil";
+export { default as Plus } from "@gravity-ui/icons/Plus";
+export { default as TrashBin } from "@gravity-ui/icons/TrashBin";
 export { default as Xmark } from "@gravity-ui/icons/Xmark";

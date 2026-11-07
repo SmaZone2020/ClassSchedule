@@ -40,8 +40,15 @@ interface DayColumnProps {
   onResize: (ref: SessionRef, end: number) => void;
   onDragStart: (ref: SessionRef, event: React.PointerEvent<HTMLElement>) => void;
   onCreateAt: (slot: Slot) => void;
+  onContextMenu: (target: MenuTarget, event: React.MouseEvent) => void;
   dragRef: SessionRef | null;
 }
+
+/** What a right click landed on: a course, or an empty slot. */
+export type MenuTarget =
+  | { kind: "session"; ref: SessionRef }
+  | { kind: "slot"; slot: Slot };
+
 
 export default function DayColumn({
   column,
@@ -63,6 +70,7 @@ export default function DayColumn({
   onResize,
   onDragStart,
   onCreateAt,
+  onContextMenu,
   dragRef
 }: DayColumnProps) {
   const { day, cards, loose } = column;
@@ -107,7 +115,15 @@ export default function DayColumn({
   const handleContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     if (settings.clickThrough) return;
     const target = event.target as HTMLElement;
-    if (target.closest(".course-card")) return;
+    const card = target.closest("[data-session-index]") as HTMLElement | null;
+    if (card) {
+      const index = Number(card.dataset.sessionIndex);
+      if (Number.isNaN(index)) return;
+      event.preventDefault();
+      onContextMenu({ kind: "session", ref: { date: day.date, index } }, event);
+      return;
+    }
+
     const grid = gridRef.current;
     if (!grid) return;
     const period = periodAtPoint(grid, model.rows, event.clientY) ?? bounds.min;
@@ -190,6 +206,7 @@ export default function DayColumn({
                 onDelete={onDelete}
                 onResize={onResize}
                 onDragStart={onDragStart}
+                onContextMenu={onContextMenu}
               />
             );
           }
@@ -205,6 +222,7 @@ export default function DayColumn({
               className={`course-card${isOver ? " finished" : ""}${
                 isCurrent ? " current" : ""
               }${clickable ? " clickable" : ""}`}
+              data-session-index={index}
               style={
                 {
                   ...courseVars(color),

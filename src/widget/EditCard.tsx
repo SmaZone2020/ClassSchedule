@@ -11,6 +11,7 @@ import type { GridRow } from "../periodGrid";
 import { blockAt, periodAtPoint, periodBounds, rowOfPeriod, type RowMetric } from "./gridHit";
 import { Xmark } from "./icons";
 import type { SessionRef } from "../scheduleEdit";
+import type { MenuTarget } from "./DayColumn";
 
 interface EditCardProps {
   session: Session;
@@ -30,6 +31,7 @@ interface EditCardProps {
   onDelete: (ref: SessionRef) => void;
   onResize: (ref: SessionRef, end: number) => void;
   onDragStart: (ref: SessionRef, event: React.PointerEvent<HTMLElement>) => void;
+  onContextMenu: (target: MenuTarget, event: React.MouseEvent) => void;
 }
 
 /** Absolutely positioned card so resizing animates top/height instead of snapping. */
@@ -48,7 +50,8 @@ export default function EditCard({
   onOpen,
   onDelete,
   onResize,
-  onDragStart
+  onDragStart,
+  onContextMenu
 }: EditCardProps) {
   const [hovered, setHovered] = useState(false);
   const [previewEnd, setPreviewEnd] = useState<number | null>(null);
@@ -124,6 +127,11 @@ export default function EditCard({
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
       onPointerDown={(event) => onDragStart({ date, index }, event)}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onContextMenu({ kind: "session", ref: { date, index } }, event);
+      }}
       onClick={(event) => {
         event.stopPropagation();
         onOpen({ date, index });

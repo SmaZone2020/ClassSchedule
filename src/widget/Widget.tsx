@@ -19,9 +19,11 @@ import CourseEditor from "./CourseEditor";
 import { useWidgetData } from "./useWidgetData";
 import { useWeekModel } from "./useWeekModel";
 import { useScheduleEditor } from "./useScheduleEditor";
-import type { Slot } from "./DayColumn";
 import { useWeather } from "./useWeather";
 import { useDailyWord } from "./useDailyWord";
+import ContextMenu, { type ContextMenuItem } from "./ContextMenu";
+import type { MenuTarget, Slot } from "./DayColumn";
+import { Pencil, TrashBin, Plus } from "./icons";
 
 export default function Widget() {
   const { settings, schedule, setSchedule, wallpaper, rect, animRect, monitors, now } =
@@ -38,9 +40,12 @@ export default function Widget() {
   const [detail, setDetail] = useState<
     { session: Parameters<typeof detailAnchor>[1]; weekday: string; date: string; anchor: DetailAnchor } | null
   >(null);
+  const [menu, setMenu] = useState<{ x: number; y: number; target: MenuTarget } | null>(null);
   // "本周课程已全部结束" can be dismissed for a single look at the finished
   // week. Leaving the week (or switching day view) brings the notice back.
   const [revealFinished, setRevealFinished] = useState(false);
+  const menuRef = useRef(false);
+  menuRef.current = menu !== null;
   const panelRef = useRef<HTMLDivElement | null>(null);
   const wheelAt = useRef(0);
   const goDayRef = useRef<(delta: 1 | -1) => void>(() => {});
@@ -61,6 +66,18 @@ export default function Widget() {
     setDetail(null);
     setEditing(false);
   }, [settings?.clickThrough]);
+
+  // The webview's own menu is never useful here; text fields keep theirs so
+  // copy/paste still works while editing a course.
+  useEffect(() => {
+    const onContextMenu = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, [contenteditable='true']")) return;
+      event.preventDefault();
+    };
+    window.addEventListener("contextmenu", onContextMenu, true);
+    return () => window.removeEventListener("contextmenu", onContextMenu, true);
+  }, []);
 
   const model = useWeekModel({
     settings,
@@ -223,6 +240,40 @@ export default function Widget() {
     editor.openSlot(slot, weekday);
   };
 
+  const openMenu = (target: MenuTarget, event: React.MouseEvent) => {
+    setDetail(null);
+    setMenu({ x: event.clientX, y: event.clientY, target });
+  };
+
+  const menuItems = (target: MenuTarget): ContextMenuItem[] => {
+    if (target.kind === "session") {
+      return [
+        {
+          label: "编辑",
+          icon: <Pencil width={12} height={12} />,
+          onSelect: () => {
+            const weekday =
+              model?.all.find((day) => day.date === target.ref.date)?.weekday ?? "";
+            editor.openSession(target.ref, weekday);
+          }
+        },
+        {
+          label: "删除",
+          icon: <TrashBin width={12} height={12} />,
+          danger: true,
+          onSelect: () => editor.remove(target.ref)
+        }
+      ];
+    }
+    return [
+      {
+        label: "新增课程",
+        icon: <Plus width={12} height={12} />,
+        onSelect: () => openSlotAt(target.slot)
+      }
+    ];
+  };
+
   const bounds = () => panelRef.current?.getBoundingClientRect() ?? new DOMRect();
 
   const panel = (
@@ -304,6 +355,7 @@ export default function Widget() {
         onResize={editor.resize}
         onDragStart={editor.beginDrag}
         onCreateAt={openSlotAt}
+        onContextMenu={openMenu}
       />
     </div>
   );
@@ -390,6 +442,15 @@ export default function Widget() {
           dateLabel={detail.date}
           anchor={detail.anchor}
           onClose={() => setDetail(null)}
+        />
+      )}
+
+      {menu && (
+        <ContextMenu
+          x={menu.x}
+          y={menu.y}
+          items={menuItems(menu.target)}
+          onClose={() => setMenu(null)}
         />
       )}
     </>

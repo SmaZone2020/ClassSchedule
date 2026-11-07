@@ -1,7 +1,7 @@
 import type { Schedule, Session, Settings } from "../types";
 import type { WeekModel } from "./useWeekModel";
 import { weekHasSessions } from "../scheduleUtils";
-import DayColumn, { type Slot } from "./DayColumn";
+import DayColumn, { type Slot, type MenuTarget } from "./DayColumn";
 import type { SessionRef } from "../scheduleEdit";
 import type { WeatherInfo } from "./weatherInfo";
 import type { DailyWord } from "./useDailyWord";
@@ -41,6 +41,7 @@ interface TimetableProps {
   onResize: (ref: SessionRef, end: number) => void;
   onDragStart: (ref: SessionRef, event: React.PointerEvent<HTMLElement>) => void;
   onCreateAt: (slot: Slot) => void;
+  onContextMenu: (target: MenuTarget, event: React.MouseEvent) => void;
 }
 
 export default function Timetable({
@@ -70,7 +71,8 @@ export default function Timetable({
   onDelete,
   onResize,
   onDragStart,
-  onCreateAt
+  onCreateAt,
+  onContextMenu
 }: TimetableProps) {
   if (model.finished && !revealFinished) {
     return (
@@ -150,6 +152,7 @@ export default function Timetable({
               onResize={onResize}
               onDragStart={onDragStart}
               onCreateAt={onCreateAt}
+              onContextMenu={onContextMenu}
               dragRef={dragRef}
             />
           ))}
