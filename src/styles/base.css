@@ -172,9 +172,9 @@ body {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 11px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
-  color: var(--text-dim);
+  color: var(--text);
   pointer-events: none;
   white-space: nowrap;
 }
