@@ -46,6 +46,7 @@ export function useScheduleEditor({ schedule, commit, rows }: Options) {
   const [dragGhost, setDragGhost] = useState<{ x: number; y: number } | null>(null);
   const [dragRef, setDragRef] = useState<SessionRef | null>(null);
   const drag = useRef<DragState | null>(null);
+  const detachDrag = useRef<(() => void) | null>(null);
   const suppressClick = useRef(false);
   const bounds = periodBounds(rows);
 
@@ -113,6 +114,17 @@ export function useScheduleEditor({ schedule, commit, rows }: Options) {
     );
   };
 
+  /** Abort an in-flight drag (used when leaving edit mode via Esc). */
+  const cancelDrag = () => {
+    detachDrag.current?.();
+    detachDrag.current = null;
+    drag.current = null;
+    setDragGhost(null);
+    setDragPreview(null);
+    setDragRef(null);
+    suppressClick.current = false;
+  };
+
   const beginDrag = (ref: SessionRef, event: React.PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;
     const session = findSession(schedule, ref);
@@ -170,8 +182,8 @@ export function useScheduleEditor({ schedule, commit, rows }: Options) {
     };
 
     const onUp = () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
+      detachDrag.current?.();
+      detachDrag.current = null;
       const state = drag.current;
       drag.current = null;
       setDragGhost(null);
@@ -198,8 +210,16 @@ export function useScheduleEditor({ schedule, commit, rows }: Options) {
       }, 0);
     };
 
+    const detach = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+    detachDrag.current = detach;
+
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
   };
 
   return {
@@ -213,6 +233,7 @@ export function useScheduleEditor({ schedule, commit, rows }: Options) {
     save,
     remove,
     resize,
-    beginDrag
+    beginDrag,
+    cancelDrag
   };
 }
