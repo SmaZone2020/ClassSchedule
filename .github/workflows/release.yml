@@ -35,20 +35,49 @@ jobs:
 
       - name: Build Tauri app
         run: npm run build:app
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Collect artifacts
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
           New-Item -ItemType Directory -Force -Path release | Out-Null
-          $name = "ClassScheduleWidget"
-          # Portable single executable: frontend assets are embedded by Tauri.
-          Copy-Item "src-tauri/target/release/$name.exe" "release/$name-portable.exe"
-          Get-ChildItem src-tauri/target/release/bundle -Recurse -Include *.exe |
-            Copy-Item -Destination release
-          Get-ChildItem release
+
+          # The binary name comes from `mainBinaryName` in tauri.conf.json, so
+          # read it instead of hardcoding a name that drifts from Cargo's.
+          $conf = Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
+          $expected = @("$($conf.mainBinaryName).exe", "$($conf.productName).exe")
+
+          $exe = $null
+          foreach ($name in $expected) {
+            $candidate = Join-Path "src-tauri/target/release" $name
+            if (Test-Path $candidate) { $exe = Get-Item $candidate; break }
+          }
+          if (-not $exe) {
+            # Fall back to the largest binary: the bundler leaves copies around.
+            $exe = Get-ChildItem "src-tauri/target/release" -Filter *.exe -File |
+              Sort-Object Length -Descending |
+              Select-Object -First 1
+          }
+          if (-not $exe) {
+            throw "no executable found in src-tauri/target/release"
+          }
+
+          Write-Host "portable binary: $($exe.Name) ($([math]::Round($exe.Length / 1MB, 1)) MB)"
+          Copy-Item $exe.FullName "release/ClassScheduleWidget-portable.exe"
+
+          $installers = @(
+            Get-ChildItem "src-tauri/target/release/bundle" -Recurse -Filter *.exe -File -ErrorAction SilentlyContinue
+          )
+          if ($installers.Count -eq 0) {
+            throw "no installer found under src-tauri/target/release/bundle"
+          }
+
+          foreach ($installer in $installers) {
+            Write-Host "installer: $($installer.Name)"
+            Copy-Item $installer.FullName "release/$($installer.Name)"
+          }
+
+          Get-ChildItem release | Select-Object Name, Length
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
