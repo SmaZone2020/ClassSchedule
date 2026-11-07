@@ -249,7 +249,14 @@ export function installDevMock() {
       }
       if (command === "get_font_catalog") {
         return {
-          system: ["Segoe UI", "Microsoft YaHei", "SimSun", "KaiTi", "Consolas"],
+          system: [
+            "Segoe UI",
+            "Microsoft YaHei",
+            "SimSun",
+            "KaiTi",
+            "Consolas",
+            ...Array.from({ length: 180 }, (_, i) => `示例字体 ${String(i + 1).padStart(3, "0")}`)
+          ],
           custom: [
             {
               path: "D:\\Font\\SiYuanSongTiRegular\\SourceHanSerifCN-Regular-1.otf",
