@@ -245,7 +245,7 @@ fn normalize_code(raw: &str) -> String {
 }
 
 async fn fetch(http: &reqwest::Client) -> Result<WeatherInfo, String> {
-    let (area_id, mut province, mut city, mut district) = match locate_by_ip(http).await {
+    let (area_id, mut province, mut city, district) = match locate_by_ip(http).await {
         Some(found) => found,
         None => locate_by_coordinates(http)
             .await
