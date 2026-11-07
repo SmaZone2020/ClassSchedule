@@ -2,9 +2,16 @@ import { useState } from "react";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import type { Schedule, ValidationReport } from "../types";
-import { Card, Row } from "../ui/Card";
-import { Button } from "../ui/Button";
-import { Bars } from "./icons";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/motion/card";
+import { Button } from "@/components/motion/button";
+import { ToggleRow } from "./Field";
 
 interface ScheduleSectionProps {
   schedule: Schedule | null;
@@ -83,71 +90,58 @@ export function ScheduleSection({ schedule, configDir, onChanged }: ScheduleSect
     : "尚未导入课表";
 
   return (
-    <Card
-      title="课表数据"
-      description="导入 JSON 课表，或导出一份可编辑的模板。"
-      icon={<Bars />}
-      index={0}
-      actions={
-        <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">
-          {schedule ? "已导入" : "空"}
-        </span>
-      }
-    >
-      <Row label="当前课表" stacked>
-        <div className="rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-[13px] text-foreground">
-          {summary}
-        </div>
-      </Row>
+    <Card>
+      <CardHeader>
+        <CardTitle as="h2">课表数据</CardTitle>
+        <CardDescription>导入 JSON 课表，或导出一份可编辑的模板。</CardDescription>
+        <CardAction>
+          <span className="text-xs text-muted-foreground">{schedule ? "已导入" : "空"}</span>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <ToggleRow label="当前课表">
+          <span className="text-sm text-muted-foreground">{summary}</span>
+        </ToggleRow>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Button onClick={importSchedule} disabled={busy}>
-          导入 课表.json
-        </Button>
-        <Button variant="secondary" onClick={downloadTemplate} disabled={busy}>
-          下载模板
-        </Button>
-        {schedule && (
-          <Button variant="danger" onClick={clearSchedule} disabled={busy}>
-            清除课表
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={importSchedule} disabled={busy}>
+            导入JSON
           </Button>
-        )}
-      </div>
-
-      <p className="mt-3 break-all text-[11px] leading-5 text-muted-foreground">
-        数据目录：{configDir}
-      </p>
-
-      {error && (
-        <div className="mt-3 rounded-lg border border-destructive/25 bg-destructive/8 px-3 py-2 text-xs text-destructive">
-          {error}
+          <Button variant="secondary" onClick={downloadTemplate} disabled={busy}>
+            下载模板
+          </Button>
+          {schedule ? (
+            <Button variant="outline" onClick={clearSchedule} disabled={busy}>
+              清除课表
+            </Button>
+          ) : null}
         </div>
-      )}
 
-      {report && (
-        <div
-          className={`mt-3 rounded-xl border px-3.5 py-2.5 text-xs leading-6 ${
-            report.valid
-              ? "border-success/25 bg-success/8 text-success"
-              : "border-destructive/25 bg-destructive/8 text-destructive"
-          }`}
-        >
-          {report.valid ? (
-            <>
-              <div>
-                校验通过：{report.weeks} 周，{report.sessions} 节课
-              </div>
-              {report.warnings.map((warning) => (
-                <div key={warning} className="text-muted-foreground">
-                  {warning}
-                </div>
-              ))}
-            </>
-          ) : (
-            <div>{report.error}</div>
-          )}
-        </div>
-      )}
+        <p className="break-all text-xs leading-relaxed text-muted-foreground">
+          数据目录：{configDir}
+        </p>
+
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+        {report ? (
+          <div className="text-sm leading-relaxed">
+            {report.valid ? (
+              <>
+                <p className="text-foreground">
+                  校验通过：{report.weeks} 周，{report.sessions} 节课
+                </p>
+                {report.warnings.map((warning) => (
+                  <p key={warning} className="text-muted-foreground">
+                    {warning}
+                  </p>
+                ))}
+              </>
+            ) : (
+              <p className="text-destructive">{report.error}</p>
+            )}
+          </div>
+        ) : null}
+      </CardContent>
     </Card>
   );
 }

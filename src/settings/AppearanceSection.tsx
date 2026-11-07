@@ -1,11 +1,19 @@
 import type { Settings } from "../types";
 import { defaultSettings } from "../settingsDefaults";
-import { Card, Grid, Row } from "../ui/Card";
-import { Button } from "../ui/Button";
-import { Select } from "../ui/Select";
-import { Switch } from "../ui/Switch";
-import { RangeSlider } from "../ui/RangeSlider";
-import { Check } from "./icons";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/motion/card";
+import { Button } from "@/components/motion/button";
+import { Switch } from "@/components/motion/switch";
+import { RangeSlider } from "@/components/motion/range-slider";
+import { cn } from "@/lib/utils";
+import { Choice } from "./Choice";
+import { Field, ToggleRow } from "./Field";
 
 interface AppearanceSectionProps {
   settings: Settings;
@@ -37,33 +45,33 @@ export function AppearanceSection({ settings, onChange }: AppearanceSectionProps
 
   return (
     <>
-      <Card
-        title="显示与样式"
-        description="控制组件的玻璃质感、密度和课程名称的显示方式。"
-        index={0}
-        actions={
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onChange({ panel: defaultSettings.panel })}
-          >
-            恢复默认
-          </Button>
-        }
-      >
-        <Grid>
-          <Select
+      <Card>
+        <CardHeader>
+          <CardTitle as="h2">显示与样式</CardTitle>
+          <CardDescription>控制组件的玻璃质感、密度和课程名称的显示方式。</CardDescription>
+          <CardAction>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onChange({ panel: defaultSettings.panel })}
+            >
+              恢复默认
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <Choice
             label="显示范围"
             value={settings.daysMode}
             onChange={(value) => onChange({ daysMode: value as Settings["daysMode"] })}
             options={[
-              { value: "auto", label: "自动（周末无课显示 5 天）" },
+              { value: "auto", label: "自动" },
               { value: "5", label: "固定 5 天" },
               { value: "7", label: "固定 7 天" },
-              { value: "today", label: "仅显示当天" }
+              { value: "today", label: "仅当天" }
             ]}
           />
-          <Select
+          <Choice
             label="对齐模式"
             value={settings.align}
             onChange={(value) => onChange({ align: value as Settings["align"] })}
@@ -73,7 +81,7 @@ export function AppearanceSection({ settings, onChange }: AppearanceSectionProps
               { value: "right", label: "右对齐" }
             ]}
           />
-          <Select
+          <Choice
             label="课程名称"
             value={panel.titleMode}
             onChange={(value) => panelPatch({ titleMode: value as "full" | "short" })}
@@ -82,7 +90,7 @@ export function AppearanceSection({ settings, onChange }: AppearanceSectionProps
               { value: "short", label: "使用简称" }
             ]}
           />
-          <Select
+          <Choice
             label="玻璃风格"
             value={settings.style}
             onChange={(value) => onChange({ style: value as Settings["style"] })}
@@ -91,7 +99,7 @@ export function AppearanceSection({ settings, onChange }: AppearanceSectionProps
               { value: "liquid", label: "液态玻璃" }
             ]}
           />
-          <Select
+          <Choice
             label="主题"
             value={settings.theme}
             onChange={(value) => onChange({ theme: value as Settings["theme"] })}
@@ -101,8 +109,8 @@ export function AppearanceSection({ settings, onChange }: AppearanceSectionProps
               { value: "dark", label: "深色" }
             ]}
           />
-          <Row label="强调色">
-            <div className="flex items-center gap-1.5">
+          <Field label="强调色">
+            <div className="flex h-10 items-center gap-2">
               {ACCENTS.map((color) => {
                 const active = settings.accent === color;
                 return (
@@ -112,40 +120,33 @@ export function AppearanceSection({ settings, onChange }: AppearanceSectionProps
                     aria-label={color}
                     aria-pressed={active}
                     onClick={() => onChange({ accent: color })}
-                    className="grid size-6 place-items-center rounded-full outline-none transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring/50"
-                    style={{
-                      background: color,
-                      boxShadow: active
-                        ? `0 0 0 2px var(--color-card), 0 0 0 3.5px ${color}`
-                        : "none"
-                    }}
-                  >
-                    {active ? <Check className="size-3 text-white" /> : null}
-                  </button>
+                    className={cn(
+                      "size-6 rounded-full outline-none transition-transform",
+                      "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                      active && "ring-2 ring-foreground ring-offset-2 ring-offset-background"
+                    )}
+                    style={{ background: color }}
+                  />
                 );
               })}
             </div>
-          </Row>
-        </Grid>
+          </Field>
+        </CardContent>
       </Card>
 
-      <Card title="玻璃参数" description="拖动即时预览。" index={1}>
-        <div className="grid gap-x-6 sm:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle as="h2">玻璃参数</CardTitle>
+          <CardDescription>拖动即时预览。</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
           {RANGES.map((range) => {
             const value = panel[range.key];
             return (
-              <Row
+              <Field
                 key={range.key}
-                stacked
-                label={
-                  <span className="flex items-center justify-between gap-2">
-                    <span>{range.label}</span>
-                    <span className="text-[11px] font-normal text-muted-foreground tabular-nums">
-                      {Math.round(value * range.scale)}
-                      {range.unit}
-                    </span>
-                  </span>
-                }
+                label={range.label}
+                value={`${Math.round(value * range.scale)}${range.unit}`}
               >
                 <RangeSlider
                   value={value}
@@ -153,24 +154,23 @@ export function AppearanceSection({ settings, onChange }: AppearanceSectionProps
                   max={range.max}
                   step={range.step}
                   aria-label={range.label}
-                  onChange={(next) => panelPatch({ [range.key]: next })}
+                  onValueChange={(next) => panelPatch({ [range.key]: next })}
                 />
-              </Row>
+              </Field>
             );
           })}
-        </div>
-
-        <div className="mt-3 grid gap-x-6 border-t border-border pt-3 sm:grid-cols-2">
+        </CardContent>
+        <CardContent className="grid gap-1 border-t border-border pt-4 sm:grid-cols-2">
           {TOGGLES.map((toggle) => (
-            <Row key={toggle.key} label={toggle.label}>
+            <ToggleRow key={toggle.key} label={toggle.label}>
               <Switch
                 checked={panel[toggle.key]}
                 ariaLabel={toggle.label}
                 onCheckedChange={(checked) => panelPatch({ [toggle.key]: checked })}
               />
-            </Row>
+            </ToggleRow>
           ))}
-        </div>
+        </CardContent>
       </Card>
     </>
   );

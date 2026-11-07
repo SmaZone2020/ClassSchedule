@@ -1,7 +1,13 @@
 import type { PeriodTime, Settings } from "../types";
-import { Card, Row } from "../ui/Card";
-import { Input } from "../ui/Input";
-import { Clock } from "./icons";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/motion/card";
+import { Input } from "@/components/motion/input";
+import { Field } from "./Field";
 
 interface PeriodsSectionProps {
   settings: Settings;
@@ -18,37 +24,34 @@ export function PeriodsSection({ settings, onChange }: PeriodsSectionProps) {
   };
 
   return (
-    <Card
-      title="作息时间"
-      description="用于高亮当前课程、判断当天是否已经结束。"
-      icon={<Clock />}
-      index={0}
-    >
-      <div className="grid gap-x-6 sm:grid-cols-2">
+    <Card>
+      <CardHeader>
+        <CardTitle as="h2">作息时间</CardTitle>
+        <CardDescription>用于高亮当前课程、判断当天是否已经结束。</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4 sm:grid-cols-2">
         {settings.periods.map((period) => (
-          <Row key={period.index} label={`第 ${period.index} 节`}>
-            <div className="flex w-full items-center gap-1.5">
+          <Field key={period.index} label={`第 ${period.index} 节`}>
+            <div className="flex items-center gap-2">
               <Input
                 type="time"
-                shape="box"
                 value={period.start}
                 onChange={(value) => update(period.index, { start: value })}
                 className="flex-1"
                 aria-label={`第 ${period.index} 节开始`}
               />
-              <span className="text-xs text-muted-foreground">–</span>
+              <span className="text-sm text-muted-foreground">–</span>
               <Input
                 type="time"
-                shape="box"
                 value={period.end}
                 onChange={(value) => update(period.index, { end: value })}
                 className="flex-1"
                 aria-label={`第 ${period.index} 节结束`}
               />
             </div>
-          </Row>
+          </Field>
         ))}
-      </div>
+      </CardContent>
     </Card>
   );
 }

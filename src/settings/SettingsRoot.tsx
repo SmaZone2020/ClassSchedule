@@ -27,7 +27,7 @@ export default function SettingsRoot() {
 
   if (!data) {
     return (
-      <div className="settings-page grid min-h-screen place-items-center">
+      <div className="grid min-h-screen place-items-center bg-background">
         <p className="text-sm text-muted-foreground">
           {failed ? "加载失败，请重启应用" : "正在加载…"}
         </p>

@@ -1,10 +1,16 @@
 import type { MonitorInfo, Settings } from "../types";
 import { panelSize } from "../settingsDefaults";
-import { Card, Grid, Row } from "../ui/Card";
-import { Select } from "../ui/Select";
-import { Switch } from "../ui/Switch";
-import { Input } from "../ui/Input";
-import { RangeSlider } from "../ui/RangeSlider";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from "@/components/motion/card";
+import { Switch } from "@/components/motion/switch";
+import { Input } from "@/components/motion/input";
+import { RangeSlider } from "@/components/motion/range-slider";
+import { Choice } from "./Choice";
+import { Field, ToggleRow } from "./Field";
 
 interface PositionSectionProps {
   settings: Settings;
@@ -35,13 +41,12 @@ export function PositionSection({ settings, monitors, onChange }: PositionSectio
 
   return (
     <>
-      <Card
-        title="位置与缩放"
-        description="X/Y 是可见面板左上角的锚点，单位为逻辑像素。"
-        index={0}
-      >
-        <Grid>
-          <Select
+      <Card>
+        <CardHeader>
+          <CardTitle as="h2">位置与缩放</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <Choice
             label="显示器"
             value={settings.position.monitor ?? ""}
             onChange={(value) =>
@@ -57,99 +62,92 @@ export function PositionSection({ settings, monitors, onChange }: PositionSectio
               }))
             ]}
           />
-          <Row
-            stacked
-            label={
-              <span className="flex items-center justify-between gap-2">
-                <span>缩放</span>
-                <span className="text-[11px] font-normal text-muted-foreground tabular-nums">
-                  {Math.round(settings.scale * 100)}%
-                </span>
-              </span>
-            }
-          >
+          <Field label="缩放" value={`${Math.round(settings.scale * 100)}%`}>
             <RangeSlider
               value={settings.scale}
               min={0.3}
               max={2}
               step={0.05}
+              showTicks={false}
               aria-label="缩放"
-              onChange={(value) => onChange({ scale: value })}
+              onValueChange={(value) => onChange({ scale: value })}
             />
-          </Row>
-        </Grid>
-
-        <div className="mt-2 grid gap-x-6 border-t border-border pt-2 sm:grid-cols-2">
-          <Row label="水平 X">
-            <div className="flex w-full items-center gap-2">
+          </Field>
+          <Field label="水平 X">
+            <div className="flex items-center gap-3">
               <RangeSlider
                 value={Math.min(settings.position.x, maxX)}
                 min={0}
                 max={maxX}
                 step={1}
+                showTicks={false}
                 aria-label="水平位置"
-                onChange={(value) => setPosition({ x: value })}
+                onValueChange={(value) => setPosition({ x: value })}
                 className="flex-1"
               />
               <Input
                 type="number"
-                shape="box"
-                value={Math.round(settings.position.x)}
+                value={String(Math.round(settings.position.x))}
                 onChange={(value) => setPosition({ x: Number(value) || 0 })}
-                className="w-[78px] shrink-0"
+                className="w-[86px] shrink-0"
                 aria-label="水平位置数值"
               />
             </div>
-          </Row>
-          <Row label="垂直 Y">
-            <div className="flex w-full items-center gap-2">
+          </Field>
+          <Field label="垂直 Y">
+            <div className="flex items-center gap-3">
               <RangeSlider
                 value={Math.min(settings.position.y, maxY)}
                 min={0}
                 max={maxY}
                 step={1}
+                showTicks={false}
                 aria-label="垂直位置"
-                onChange={(value) => setPosition({ y: value })}
+                onValueChange={(value) => setPosition({ y: value })}
                 className="flex-1"
               />
               <Input
                 type="number"
-                shape="box"
-                value={Math.round(settings.position.y)}
+                value={String(Math.round(settings.position.y))}
                 onChange={(value) => setPosition({ y: Number(value) || 0 })}
-                className="w-[78px] shrink-0"
+                className="w-[86px] shrink-0"
                 aria-label="垂直位置数值"
               />
             </div>
-          </Row>
-        </div>
+          </Field>
+        </CardContent>
       </Card>
 
-      <Card title="窗口行为" index={1}>
-        <Row
-          label="始终置底"
-          hint="固定在桌面层，不会挡住其它窗口；开启后每秒重新压回底层。"
-        >
-          <Switch
-            checked={settings.desktopPin}
-            ariaLabel="始终置底"
-            onCheckedChange={(checked) => onChange({ desktopPin: checked })}
-          />
-        </Row>
-        <Row label="鼠标穿透" hint="开启后鼠标点击直接落到桌面，组件不响应。">
-          <Switch
-            checked={settings.clickThrough}
-            ariaLabel="鼠标穿透"
-            onCheckedChange={(checked) => onChange({ clickThrough: checked })}
-          />
-        </Row>
-        <Row label="显示组件">
-          <Switch
-            checked={settings.widgetVisible}
-            ariaLabel="显示组件"
-            onCheckedChange={(checked) => onChange({ widgetVisible: checked })}
-          />
-        </Row>
+      <Card>
+        <CardHeader>
+          <CardTitle as="h2">窗口行为</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-1">
+          <ToggleRow
+            label="始终置底"
+            hint="固定在桌面层，不会挡住其它窗口；开启后每秒重新压回底层。"
+          >
+            <Switch
+              checked={settings.desktopPin}
+              ariaLabel="始终置底"
+              onCheckedChange={(checked) => onChange({ desktopPin: checked })}
+            />
+          </ToggleRow>
+          <ToggleRow label="鼠标穿透" hint="开启后鼠标点击直接落到桌面，组件不响应。">
+            <Switch
+              checked={settings.clickThrough}
+              ariaLabel="鼠标穿透"
+              onCheckedChange={(checked) => onChange({ clickThrough: checked })}
+            />
+          </ToggleRow>
+          <ToggleRow label="显示组件">
+            <Switch
+              checked={settings.widgetVisible}
+              ariaLabel="显示组件"
+              onCheckedChange={(checked) => onChange({ widgetVisible: checked })}
+            />
+          </ToggleRow>
+        </CardContent>
       </Card>
     </>
   );

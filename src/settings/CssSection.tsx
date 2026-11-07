@@ -1,8 +1,16 @@
 import type { CustomCss, Settings } from "../types";
-import { Card, Row } from "../ui/Card";
-import { Button } from "../ui/Button";
-import { Switch } from "../ui/Switch";
-import { Code } from "./icons";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/motion/card";
+import { Button } from "@/components/motion/button";
+import { Switch } from "@/components/motion/switch";
+import { cn } from "@/lib/utils";
+import { Field, ToggleRow } from "./Field";
 
 interface CssSectionProps {
   settings: Settings;
@@ -19,63 +27,54 @@ background: rgba(255,255,255,.16);
 border-radius: 14px;
 backdrop-filter: blur(10px);`;
 
+/** Same surface as beUI's RangeSlider track, so the form reads as one set. */
 const EDITOR_CLASS =
-  "w-full min-h-[132px] resize-y rounded-xl border border-border bg-muted/40 px-3 py-2.5 font-mono text-[12px] leading-5 text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-foreground/30 focus:ring-2 focus:ring-ring/25";
+  "min-h-[132px] w-full resize-y rounded-lg bg-muted px-3 py-2.5 font-mono text-xs leading-5 text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-ring";
 
 export function CssSection({ settings, onChange }: CssSectionProps) {
   const css = settings.css;
   const patch = (value: Partial<CustomCss>) => onChange({ css: { ...css, ...value } });
 
   return (
-    <Card
-      title="高级 CSS"
-      description="以行内声明形式注入，无需写选择器和大括号。"
-      icon={<Code />}
-      index={0}
-      actions={
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => patch({ container: "", course: "" })}
-        >
-          清空
-        </Button>
-      }
-    >
-      <Row label="启用自定义 CSS">
-        <Switch
-          checked={css.enabled}
-          ariaLabel="启用自定义 CSS"
-          onCheckedChange={(checked) => patch({ enabled: checked })}
-        />
-      </Row>
+    <Card>
+      <CardHeader>
+        <CardTitle as="h2">高级 CSS</CardTitle>
+        <CardDescription>以行内声明形式注入，无需写选择器和大括号。</CardDescription>
+        <CardAction>
+          <Button variant="ghost" size="sm" onClick={() => patch({ container: "", course: "" })}>
+            清空
+          </Button>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <ToggleRow label="启用自定义 CSS">
+          <Switch
+            checked={css.enabled}
+            ariaLabel="启用自定义 CSS"
+            onCheckedChange={(checked) => patch({ enabled: checked })}
+          />
+        </ToggleRow>
 
-      <div className="mt-2 space-y-3">
-        <div>
-          <div className="mb-1.5 px-1 text-[11px] font-semibold tracking-wide text-muted-foreground">
-            课表容器 · .schedule-panel
-          </div>
+        <Field label="课表容器 · .schedule-panel">
           <textarea
-            className={EDITOR_CLASS}
+            className={cn(EDITOR_CLASS)}
             spellCheck={false}
             placeholder={CONTAINER_PLACEHOLDER}
             value={css.container}
             onChange={(event) => patch({ container: event.target.value })}
           />
-        </div>
-        <div>
-          <div className="mb-1.5 px-1 text-[11px] font-semibold tracking-wide text-muted-foreground">
-            课程项 · .course-card
-          </div>
+        </Field>
+
+        <Field label="课程项 · .course-card">
           <textarea
-            className={EDITOR_CLASS}
+            className={cn(EDITOR_CLASS)}
             spellCheck={false}
             placeholder={COURSE_PLACEHOLDER}
             value={css.course}
             onChange={(event) => patch({ course: event.target.value })}
           />
-        </div>
-      </div>
+        </Field>
+      </CardContent>
     </Card>
   );
 }

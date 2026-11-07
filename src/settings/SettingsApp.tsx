@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { AppData, FontCatalog, Settings, WallpaperInfo } from "../types";
 import { persistSettings } from "./api";
 import { applyAppFont, invalidateFontCache } from "../font";
-import { Tabs } from "../ui/Tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/motion/tabs";
 import { Bars, Clock, Code, Font, LayoutColumns, Palette } from "./icons";
 import { PositionSection } from "./PositionSection";
 import { AppearanceSection } from "./AppearanceSection";
 import { FontSection } from "./FontSection";
 import { WallpaperSection } from "./WallpaperSection";
 import { ScheduleSection } from "./ScheduleSection";
+import { XiqueerSection } from "./XiqueerSection";
 import { PeriodsSection } from "./PeriodsSection";
 import { CssSection } from "./CssSection";
 
@@ -88,36 +89,27 @@ export default function SettingsApp({ data, reload }: SettingsAppProps) {
   const label =
     state === "saving" ? "保存中…" : state === "error" ? "保存失败" : state === "saved" ? "已保存" : "";
 
-  const accent = useMemo(
-    () => ({ "--accent": settings.accent }) as React.CSSProperties,
-    [settings.accent]
-  );
-
   return (
-    <div className="settings-page" style={accent}>
-      <div className="mx-auto flex min-h-screen w-full max-w-[860px] flex-col gap-5 px-6 pb-14 pt-7">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-[19px] font-semibold tracking-tight text-foreground">
-              课表组件设置
-            </h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              桌面小组件 · 修改会即时同步到桌面
-            </p>
-          </div>
-          <span
-            className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground tabular-nums"
-            aria-live="polite"
-          >
-            {label || "自动保存"}
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="mx-auto flex w-full max-w-[860px] flex-col gap-4 px-6 pb-16 pt-6">
+        <header className="flex items-end justify-between gap-3">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">课表组件设置</h1>
+          <span className="pb-0.5 text-xs tabular-nums text-muted-foreground" aria-live="polite">
+            {label}
           </span>
         </header>
 
-        <Tabs items={TABS} value={tab} onChange={setTab} className="self-start" />
+        <Tabs value={tab} onValueChange={setTab} variant="underline">
+          <TabsList>
+            {TABS.map((item) => (
+              <TabsTrigger key={item.value} value={item.value} icon={item.icon}>
+                {item.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-        <div className="flex flex-col gap-4">
-          {tab === "appearance" && (
-            <>
+          <TabsContent value="appearance">
+            <div className="flex flex-col gap-4">
               <AppearanceSection settings={settings} onChange={patch} />
               <WallpaperSection
                 settings={settings}
@@ -125,10 +117,10 @@ export default function SettingsApp({ data, reload }: SettingsAppProps) {
                 onChange={patch}
                 onWallpaperChanged={setWallpaper}
               />
-            </>
-          )}
+            </div>
+          </TabsContent>
 
-          {tab === "font" && (
+          <TabsContent value="font">
             <FontSection
               settings={settings}
               catalog={catalog}
@@ -136,24 +128,31 @@ export default function SettingsApp({ data, reload }: SettingsAppProps) {
               onCatalog={setCatalog}
               onSilentChange={patchSilent}
             />
-          )}
+          </TabsContent>
 
-          {tab === "layout" && (
+          <TabsContent value="layout">
             <PositionSection settings={settings} monitors={data.monitors} onChange={patch} />
-          )}
+          </TabsContent>
 
-          {tab === "schedule" && (
-            <ScheduleSection
-              schedule={data.schedule}
-              configDir={data.configDir}
-              onChanged={reload}
-            />
-          )}
+          <TabsContent value="schedule">
+            <div className="flex flex-col gap-4">
+              <ScheduleSection
+                schedule={data.schedule}
+                configDir={data.configDir}
+                onChanged={reload}
+              />
+              <XiqueerSection onChange={patch} onImported={reload} />
+            </div>
+          </TabsContent>
 
-          {tab === "periods" && <PeriodsSection settings={settings} onChange={patch} />}
+          <TabsContent value="periods">
+            <PeriodsSection settings={settings} onChange={patch} />
+          </TabsContent>
 
-          {tab === "advanced" && <CssSection settings={settings} onChange={patch} />}
-        </div>
+          <TabsContent value="advanced">
+            <CssSection settings={settings} onChange={patch} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

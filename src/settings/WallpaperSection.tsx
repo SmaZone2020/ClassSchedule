@@ -2,10 +2,17 @@ import { useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import type { Settings, WallpaperInfo } from "../types";
-import { Card, Row } from "../ui/Card";
-import { Button } from "../ui/Button";
-import { RangeSlider } from "../ui/RangeSlider";
-import { Picture } from "./icons";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/motion/card";
+import { Button } from "@/components/motion/button";
+import { RangeSlider } from "@/components/motion/range-slider";
+import { Field, ToggleRow } from "./Field";
 
 interface WallpaperSectionProps {
   settings: Settings;
@@ -66,65 +73,48 @@ export function WallpaperSection({
       : "未载入壁纸";
 
   return (
-    <Card
-      title="背景壁纸"
-      description="壁纸画进组件并按屏幕位置裁剪，所以模糊只作用于组件背景。"
-      icon={<Picture />}
-      index={2}
-      actions={
-        <div className="flex items-center gap-2">
-          <Button
-            variant={value.mode === "system" ? "primary" : "secondary"}
-            size="sm"
-            onClick={useSystem}
-            disabled={busy}
-          >
-            跟随系统
-          </Button>
-          <Button variant="outline" size="sm" onClick={pickImage} disabled={busy}>
-            选择图片…
-          </Button>
-        </div>
-      }
-    >
-      <Row label="当前壁纸">
-        <span className="max-w-[320px] truncate rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">
-          {status}
-        </span>
-      </Row>
-
-      <Row
-        stacked
-        label={
-          <span className="flex items-center justify-between gap-2">
-            <span>背景压暗</span>
-            <span className="text-[11px] font-normal text-muted-foreground tabular-nums">
-              {Math.round(value.dim * 100)}%
-            </span>
-          </span>
-        }
-      >
-        <RangeSlider
-          value={value.dim}
-          min={0}
-          max={0.8}
-          step={0.02}
-          aria-label="背景压暗"
-          onChange={(next) => patch({ dim: next })}
-        />
-      </Row>
-
-      {value.mode === "custom" && value.customPath && (
-        <p className="mt-1 break-all text-[11px] leading-5 text-muted-foreground">
-          当前文件：{value.customPath}
-        </p>
-      )}
-
-      {error && (
-        <div className="mt-3 rounded-lg border border-destructive/25 bg-destructive/8 px-3 py-2 text-xs text-destructive">
-          {error}
-        </div>
-      )}
+    <Card>
+      <CardHeader>
+        <CardTitle as="h2">背景壁纸</CardTitle>
+        <CardDescription>壁纸画进组件并按屏幕位置裁剪，所以模糊只作用于组件背景。</CardDescription>
+        <CardAction>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={value.mode === "system" ? "primary" : "secondary"}
+              size="sm"
+              onClick={useSystem}
+              disabled={busy}
+            >
+              跟随系统
+            </Button>
+            <Button variant="outline" size="sm" onClick={pickImage} disabled={busy}>
+              选择图片…
+            </Button>
+          </div>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <ToggleRow label="当前壁纸">
+          <span className="max-w-[320px] truncate text-sm text-muted-foreground">{status}</span>
+        </ToggleRow>
+        <Field label="背景压暗" value={`${Math.round(value.dim * 100)}%`}>
+          <RangeSlider
+            value={value.dim}
+            min={0}
+            max={0.8}
+            step={0.02}
+            showTicks={false}
+            aria-label="背景压暗"
+            onValueChange={(next) => patch({ dim: next })}
+          />
+        </Field>
+        {value.mode === "custom" && value.customPath ? (
+          <p className="break-all text-xs leading-relaxed text-muted-foreground">
+            当前文件：{value.customPath}
+          </p>
+        ) : null}
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      </CardContent>
     </Card>
   );
 }
