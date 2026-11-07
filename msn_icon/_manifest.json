@@ -1,0 +1,849 @@
+{
+  "source": "https://assets.msn.cn/weathermapdata/1/static/weather/Icons/taskbar_v10/Condition_Card/",
+  "generatedAt": "2026-11-07T09:10:39.182Z",
+  "totalFiles": 57,
+  "removedDuplicates": [
+    "D311LightRainSnowShowersV2",
+    "D321RainSnowShowersV2",
+    "Dust",
+    "Dust1",
+    "LightRainV2",
+    "N311LightRainSnowShowersV2",
+    "N321RainSnowShowersV2",
+    "RainShowersDayV2",
+    "RainShowersNightV2",
+    "RainSnowShowersNightV2"
+  ],
+  "aliases": {
+    "Dust": "BlowingHailV2",
+    "Dust1": "BlowingHailV2",
+    "D311LightRainSnowShowersV2": "D221RainSnowShowersV2",
+    "D321RainSnowShowersV2": "D221RainSnowShowersV2",
+    "RainShowersDayV2": "LightRainShowerDay",
+    "RainShowersNightV2": "LightRainShowerNight",
+    "LightRainV2": "LightRainV3",
+    "N311LightRainSnowShowersV2": "N221RainSnowShowersV2",
+    "N321RainSnowShowersV2": "N221RainSnowShowersV2",
+    "RainSnowShowersNightV2": "RainSnowV2"
+  },
+  "codes": {
+    "d000": {
+      "file": "SunnyDayV3.svg",
+      "name": "SunnyDayV3"
+    },
+    "d100": {
+      "file": "MostlySunnyDay.svg",
+      "name": "MostlySunnyDay"
+    },
+    "d200": {
+      "file": "D200PartlySunnyV2.svg",
+      "name": "D200PartlySunnyV2"
+    },
+    "d210": {
+      "file": "D210LightRainShowersV2.svg",
+      "name": "D210LightRainShowersV2"
+    },
+    "d211": {
+      "file": "D211LightRainSowShowersV2.svg",
+      "name": "D211LightRainSowShowersV2"
+    },
+    "d212": {
+      "file": "D212LightSnowShowersV2.svg",
+      "name": "D212LightSnowShowersV2"
+    },
+    "d220": {
+      "file": "LightRainShowerDay.svg",
+      "name": "LightRainShowerDay"
+    },
+    "d221": {
+      "file": "D221RainSnowShowersV2.svg",
+      "name": "D221RainSnowShowersV2"
+    },
+    "d222": {
+      "file": "SnowShowersDayV2.svg",
+      "name": "SnowShowersDayV2"
+    },
+    "d240": {
+      "file": "D240TstormsV2.svg",
+      "name": "D240TstormsV2"
+    },
+    "d300": {
+      "file": "MostlyCloudyDayV2.svg",
+      "name": "MostlyCloudyDayV2"
+    },
+    "d310": {
+      "file": "D310LightRainShowersV2.svg",
+      "name": "D310LightRainShowersV2"
+    },
+    "d311": {
+      "file": "D221RainSnowShowersV2.svg",
+      "name": "D221RainSnowShowersV2",
+      "alias": "D311LightRainSnowShowersV2"
+    },
+    "d312": {
+      "file": "LightSnowShowersDay.svg",
+      "name": "LightSnowShowersDay"
+    },
+    "d320": {
+      "file": "LightRainShowerDay.svg",
+      "name": "LightRainShowerDay",
+      "alias": "RainShowersDayV2"
+    },
+    "d321": {
+      "file": "D221RainSnowShowersV2.svg",
+      "name": "D221RainSnowShowersV2",
+      "alias": "D321RainSnowShowersV2"
+    },
+    "d322": {
+      "file": "SnowShowersDayV2.svg",
+      "name": "SnowShowersDayV2"
+    },
+    "d340": {
+      "file": "D340TstormsV2.svg",
+      "name": "D340TstormsV2"
+    },
+    "d400": {
+      "file": "CloudyV3.svg",
+      "name": "CloudyV3"
+    },
+    "d410": {
+      "file": "LightRainV3.svg",
+      "name": "LightRainV3"
+    },
+    "d411": {
+      "file": "RainSnowV2.svg",
+      "name": "RainSnowV2"
+    },
+    "d412": {
+      "file": "LightSnowV2.svg",
+      "name": "LightSnowV2"
+    },
+    "d420": {
+      "file": "HeavyDrizzle.svg",
+      "name": "HeavyDrizzle"
+    },
+    "d421": {
+      "file": "RainSnowV2.svg",
+      "name": "RainSnowV2"
+    },
+    "d422": {
+      "file": "Snow.svg",
+      "name": "Snow"
+    },
+    "d430": {
+      "file": "ModerateRainV2.svg",
+      "name": "ModerateRainV2"
+    },
+    "d431": {
+      "file": "RainSnowV2.svg",
+      "name": "RainSnowV2"
+    },
+    "d432": {
+      "file": "HeavySnowV2.svg",
+      "name": "HeavySnowV2"
+    },
+    "d440": {
+      "file": "Thunderstorm.svg",
+      "name": "Thunderstorm"
+    },
+    "d500": {
+      "file": "MostlyCloudyDayV2.svg",
+      "name": "MostlyCloudyDayV2"
+    },
+    "d600": {
+      "file": "FogV2.svg",
+      "name": "FogV2"
+    },
+    "d603": {
+      "file": "FreezingRainV2.svg",
+      "name": "FreezingRainV2"
+    },
+    "d605": {
+      "file": "IcePelletsV2.svg",
+      "name": "IcePelletsV2"
+    },
+    "d705": {
+      "file": "BlowingHailV2.svg",
+      "name": "BlowingHailV2"
+    },
+    "d900": {
+      "file": "Haze.svg",
+      "name": "Haze"
+    },
+    "d905": {
+      "file": "BlowingHailV2.svg",
+      "name": "BlowingHailV2"
+    },
+    "d907": {
+      "file": "Haze.svg",
+      "name": "Haze"
+    },
+    "n000": {
+      "file": "ClearNightV3.svg",
+      "name": "ClearNightV3"
+    },
+    "n100": {
+      "file": "MostlyClearNight.svg",
+      "name": "MostlyClearNight"
+    },
+    "n200": {
+      "file": "PartlyCloudyNightV2.svg",
+      "name": "PartlyCloudyNightV2"
+    },
+    "n210": {
+      "file": "N210LightRainShowersV2.svg",
+      "name": "N210LightRainShowersV2"
+    },
+    "n211": {
+      "file": "N211LightRainSnowShowersV2.svg",
+      "name": "N211LightRainSnowShowersV2"
+    },
+    "n212": {
+      "file": "N212LightSnowShowersV2.svg",
+      "name": "N212LightSnowShowersV2"
+    },
+    "n220": {
+      "file": "LightRainShowerNight.svg",
+      "name": "LightRainShowerNight"
+    },
+    "n221": {
+      "file": "N221RainSnowShowersV2.svg",
+      "name": "N221RainSnowShowersV2"
+    },
+    "n222": {
+      "file": "N222SnowShowersV2.svg",
+      "name": "N222SnowShowersV2"
+    },
+    "n240": {
+      "file": "N240TstormsV2.svg",
+      "name": "N240TstormsV2"
+    },
+    "n300": {
+      "file": "MostlyCloudyNightV2.svg",
+      "name": "MostlyCloudyNightV2"
+    },
+    "n310": {
+      "file": "N310LightRainShowersV2.svg",
+      "name": "N310LightRainShowersV2"
+    },
+    "n311": {
+      "file": "N221RainSnowShowersV2.svg",
+      "name": "N221RainSnowShowersV2",
+      "alias": "N311LightRainSnowShowersV2"
+    },
+    "n312": {
+      "file": "LightSnowShowersNight.svg",
+      "name": "LightSnowShowersNight"
+    },
+    "n320": {
+      "file": "LightRainShowerNight.svg",
+      "name": "LightRainShowerNight",
+      "alias": "RainShowersNightV2"
+    },
+    "n321": {
+      "file": "N221RainSnowShowersV2.svg",
+      "name": "N221RainSnowShowersV2",
+      "alias": "N321RainSnowShowersV2"
+    },
+    "n322": {
+      "file": "N322SnowShowersV2.svg",
+      "name": "N322SnowShowersV2"
+    },
+    "n340": {
+      "file": "N340TstormsV2.svg",
+      "name": "N340TstormsV2"
+    },
+    "n400": {
+      "file": "CloudyV3.svg",
+      "name": "CloudyV3"
+    },
+    "n410": {
+      "file": "LightRainV3.svg",
+      "name": "LightRainV3"
+    },
+    "n411": {
+      "file": "RainSnowV2.svg",
+      "name": "RainSnowV2"
+    },
+    "n412": {
+      "file": "LightSnowV2.svg",
+      "name": "LightSnowV2"
+    },
+    "n420": {
+      "file": "HeavyDrizzle.svg",
+      "name": "HeavyDrizzle"
+    },
+    "n421": {
+      "file": "RainSnowV2.svg",
+      "name": "RainSnowV2",
+      "alias": "RainSnowShowersNightV2"
+    },
+    "n422": {
+      "file": "N422SnowV2.svg",
+      "name": "N422SnowV2"
+    },
+    "n430": {
+      "file": "ModerateRainV2.svg",
+      "name": "ModerateRainV2"
+    },
+    "n431": {
+      "file": "RainSnowV2.svg",
+      "name": "RainSnowV2"
+    },
+    "n432": {
+      "file": "HeavySnowV2.svg",
+      "name": "HeavySnowV2"
+    },
+    "n440": {
+      "file": "Thunderstorm.svg",
+      "name": "Thunderstorm"
+    },
+    "n500": {
+      "file": "PartlyCloudyNightV2.svg",
+      "name": "PartlyCloudyNightV2"
+    },
+    "n600": {
+      "file": "FogV2.svg",
+      "name": "FogV2"
+    },
+    "n603": {
+      "file": "FreezingRainV2.svg",
+      "name": "FreezingRainV2"
+    },
+    "n605": {
+      "file": "BlowingHailV2.svg",
+      "name": "BlowingHailV2"
+    },
+    "n705": {
+      "file": "BlowingHailV2.svg",
+      "name": "BlowingHailV2"
+    },
+    "n900": {
+      "file": "Hazy-Night.svg",
+      "name": "Hazy-Night"
+    },
+    "n905": {
+      "file": "BlowingHailV2.svg",
+      "name": "BlowingHailV2"
+    },
+    "n907": {
+      "file": "Hazy-Night.svg",
+      "name": "Hazy-Night"
+    },
+    "xxxx1": {
+      "file": "WindyV2.svg",
+      "name": "WindyV2"
+    }
+  },
+  "extras": [
+    {
+      "name": "BlowingSnowV2",
+      "file": "BlowingSnowV2.svg"
+    },
+    {
+      "name": "Fair",
+      "file": "Fair.svg"
+    },
+    {
+      "name": "HailDayV2",
+      "file": "HailDayV2.svg"
+    },
+    {
+      "name": "HailNightV2",
+      "file": "HailNightV2.svg"
+    },
+    {
+      "name": "HazySmokeV2",
+      "file": "HazySmokeV2.svg"
+    },
+    {
+      "name": "IcePellets",
+      "file": "IcePellets.svg"
+    },
+    {
+      "name": "PartlyCloudyDayV3",
+      "file": "PartlyCloudyDayV3.svg"
+    },
+    {
+      "name": "SmokeNight",
+      "file": "SmokeNight.svg"
+    },
+    {
+      "name": "SnowShowersNightV2",
+      "file": "SnowShowersNightV2.svg"
+    },
+    {
+      "name": "Thunderstorms",
+      "file": "Thunderstorms.svg"
+    },
+    {
+      "name": "ThunderstormsV2",
+      "file": "ThunderstormsV2.svg"
+    }
+  ],
+  "files": [
+    {
+      "name": "BlowingHailV2",
+      "file": "BlowingHailV2.svg",
+      "sha256": "ba58af928004c6fdf18c8e012f3fa3ff92e222829a7625bd078afae96f8ba963",
+      "codes": [
+        "d705",
+        "d905",
+        "n605",
+        "n705",
+        "n905"
+      ]
+    },
+    {
+      "name": "BlowingSnowV2",
+      "file": "BlowingSnowV2.svg",
+      "sha256": "a4cd314bb973e3a71371c600c0a0becfb51a19626523607ea58cf2da43d1f447",
+      "codes": []
+    },
+    {
+      "name": "ClearNightV3",
+      "file": "ClearNightV3.svg",
+      "sha256": "c48744c0b04ce42177a5a6aaa5292bd3fd0d7e2a5f91a29462b2bf1b096973dd",
+      "codes": [
+        "n000"
+      ]
+    },
+    {
+      "name": "CloudyV3",
+      "file": "CloudyV3.svg",
+      "sha256": "3d6c8efb4e185ebd336cf879f8147b74a4dc41d142c8ceb973d676dca180de04",
+      "codes": [
+        "d400",
+        "n400"
+      ]
+    },
+    {
+      "name": "D200PartlySunnyV2",
+      "file": "D200PartlySunnyV2.svg",
+      "sha256": "bc99541681a9c9464ec8bf5c979d61930449c68ba18854bfa4bb105c6bac2309",
+      "codes": [
+        "d200"
+      ]
+    },
+    {
+      "name": "D210LightRainShowersV2",
+      "file": "D210LightRainShowersV2.svg",
+      "sha256": "0df67dc20032636e6968c6c481652551c7626217acb796209a29c93a9211c93e",
+      "codes": [
+        "d210"
+      ]
+    },
+    {
+      "name": "D211LightRainSowShowersV2",
+      "file": "D211LightRainSowShowersV2.svg",
+      "sha256": "3d7769a52c44e7aa53f8fbaa84d7c6cd693546ea1ac4181d41d7a8d98e1ec7e5",
+      "codes": [
+        "d211"
+      ]
+    },
+    {
+      "name": "D212LightSnowShowersV2",
+      "file": "D212LightSnowShowersV2.svg",
+      "sha256": "e7489e71111e69df45a9af3edb12db251c18bc97dcec33b3f2a36110f59039f4",
+      "codes": [
+        "d212"
+      ]
+    },
+    {
+      "name": "D221RainSnowShowersV2",
+      "file": "D221RainSnowShowersV2.svg",
+      "sha256": "4aa8bf322a0e9a594fc5ff2227c36ab219ed3592544c358c5086b62bc2c347d9",
+      "codes": [
+        "d221",
+        "d311",
+        "d321"
+      ]
+    },
+    {
+      "name": "D240TstormsV2",
+      "file": "D240TstormsV2.svg",
+      "sha256": "d23cb529c361828128f228f4332f0263f2f500653c1595c4bc5117eba85f4e61",
+      "codes": [
+        "d240"
+      ]
+    },
+    {
+      "name": "D310LightRainShowersV2",
+      "file": "D310LightRainShowersV2.svg",
+      "sha256": "6a1af706bf98f76d07b151a4f83c1ea12621c8d233244c2f43d06741e2cc5a5b",
+      "codes": [
+        "d310"
+      ]
+    },
+    {
+      "name": "D340TstormsV2",
+      "file": "D340TstormsV2.svg",
+      "sha256": "66f6e5293266111f7637079fcecb3e43879c45ab853b60ed355d865a22ad6780",
+      "codes": [
+        "d340"
+      ]
+    },
+    {
+      "name": "Fair",
+      "file": "Fair.svg",
+      "sha256": "b938d4ab52cb63e0fc445ec572f469d717ca55575b4ef7c531381be101536481",
+      "codes": []
+    },
+    {
+      "name": "FogV2",
+      "file": "FogV2.svg",
+      "sha256": "ed882bf94420c8e7b65622acb289fefbef4b20c0ceca3eb878d6c846f30f7cc6",
+      "codes": [
+        "d600",
+        "n600"
+      ]
+    },
+    {
+      "name": "FreezingRainV2",
+      "file": "FreezingRainV2.svg",
+      "sha256": "5e3c3e06c7972be4c52f4a5c52e45b2f903009244db735eb0b565a5339a83b44",
+      "codes": [
+        "d603",
+        "n603"
+      ]
+    },
+    {
+      "name": "HailDayV2",
+      "file": "HailDayV2.svg",
+      "sha256": "2e55faaa306e9e7c30f239dd9f582ebb93c8c21ead79b5b21226d974515d2a9b",
+      "codes": []
+    },
+    {
+      "name": "HailNightV2",
+      "file": "HailNightV2.svg",
+      "sha256": "0480aeb2b7fe66844022e576d823c5b74f70ff1211f3bfd25557c20c01258862",
+      "codes": []
+    },
+    {
+      "name": "Haze",
+      "file": "Haze.svg",
+      "sha256": "63c6c8a5ae78287a2ebbadb2f26fff7e87071c657974b92fedd0702e4efc96b7",
+      "codes": [
+        "d900",
+        "d907"
+      ]
+    },
+    {
+      "name": "Hazy-Night",
+      "file": "Hazy-Night.svg",
+      "sha256": "11fa262b00810a2e1df2371c755d4cfff45a510be94e10b6c2fccf406b2ac87f",
+      "codes": [
+        "n900",
+        "n907"
+      ]
+    },
+    {
+      "name": "HazySmokeV2",
+      "file": "HazySmokeV2.svg",
+      "sha256": "c70aa8a58e5680d488ef5a464017b571e72cb690d629ba8156a2ff329d3315e6",
+      "codes": []
+    },
+    {
+      "name": "HeavyDrizzle",
+      "file": "HeavyDrizzle.svg",
+      "sha256": "d13fa8b5d7162b15940d5d0bcbad0e762f1d93183e74d9e15e6077a7e7015282",
+      "codes": [
+        "d420",
+        "n420"
+      ]
+    },
+    {
+      "name": "HeavySnowV2",
+      "file": "HeavySnowV2.svg",
+      "sha256": "a9edda63a909d8ac694b23246b700cfd43f6c4377516af4487d593efc8faefa6",
+      "codes": [
+        "d432",
+        "n432"
+      ]
+    },
+    {
+      "name": "IcePellets",
+      "file": "IcePellets.svg",
+      "sha256": "c714b39661b601678ef724ce2b5c3ffe80abb8cc5e0f17e09a968bf63d7ea693",
+      "codes": []
+    },
+    {
+      "name": "IcePelletsV2",
+      "file": "IcePelletsV2.svg",
+      "sha256": "b963c23a638b8f202e2421f37973ef73aa15beff0ca64b84bd9a1786f1ad4490",
+      "codes": [
+        "d605"
+      ]
+    },
+    {
+      "name": "LightRainShowerDay",
+      "file": "LightRainShowerDay.svg",
+      "sha256": "2d78c84c5729ea87946ec57bf4b9dbff3823c9bb3a45d2c39751b255f5ffebae",
+      "codes": [
+        "d220",
+        "d320"
+      ]
+    },
+    {
+      "name": "LightRainShowerNight",
+      "file": "LightRainShowerNight.svg",
+      "sha256": "ceb44f7de80ccd4d3a33c35707b8d537d3db2f4eac81eb0b68fb819760033316",
+      "codes": [
+        "n220",
+        "n320"
+      ]
+    },
+    {
+      "name": "LightRainV3",
+      "file": "LightRainV3.svg",
+      "sha256": "79db8486748e3f667d8640f01c5ae97be772c2eee6858d1ef09f4e92e8b34d95",
+      "codes": [
+        "d410",
+        "n410"
+      ]
+    },
+    {
+      "name": "LightSnowShowersDay",
+      "file": "LightSnowShowersDay.svg",
+      "sha256": "4bed477e9fbffe74d152c9b7b725d53db4936989188aac4adfd729380194988f",
+      "codes": [
+        "d312"
+      ]
+    },
+    {
+      "name": "LightSnowShowersNight",
+      "file": "LightSnowShowersNight.svg",
+      "sha256": "c9a53aa5fb479474040438c0cfdb70777acb6957dc94eb82c3c8c3a75fdad8f2",
+      "codes": [
+        "n312"
+      ]
+    },
+    {
+      "name": "LightSnowV2",
+      "file": "LightSnowV2.svg",
+      "sha256": "42cdccccbe6b5a167b6aae2d715e19a5c4dd73338c3a33cde27caf6fa1510d59",
+      "codes": [
+        "d412",
+        "n412"
+      ]
+    },
+    {
+      "name": "ModerateRainV2",
+      "file": "ModerateRainV2.svg",
+      "sha256": "5854fb32e2313ef89ab9687abdfa98a5df0e57f9def2289b66300022e4d4f2da",
+      "codes": [
+        "d430",
+        "n430"
+      ]
+    },
+    {
+      "name": "MostlyClearNight",
+      "file": "MostlyClearNight.svg",
+      "sha256": "84c00cda932fa3883b39695d1e0d23996d016905166c158d8d0dcc7eb087564d",
+      "codes": [
+        "n100"
+      ]
+    },
+    {
+      "name": "MostlyCloudyDayV2",
+      "file": "MostlyCloudyDayV2.svg",
+      "sha256": "5f9c017c24d6b67b337dcd8825ebd3de456f35f29e0c2f938d641f326d82e08b",
+      "codes": [
+        "d300",
+        "d500"
+      ]
+    },
+    {
+      "name": "MostlyCloudyNightV2",
+      "file": "MostlyCloudyNightV2.svg",
+      "sha256": "f0978a00f33370110e1675cf5b8354379beeca9728f27f900a94e09dd13248b6",
+      "codes": [
+        "n300"
+      ]
+    },
+    {
+      "name": "MostlySunnyDay",
+      "file": "MostlySunnyDay.svg",
+      "sha256": "b53e1d19cd1bde66a5fe9edf48b707efe5fb98bc322d30afada946c923f2381c",
+      "codes": [
+        "d100"
+      ]
+    },
+    {
+      "name": "N210LightRainShowersV2",
+      "file": "N210LightRainShowersV2.svg",
+      "sha256": "004607290346114284c3d3c75aced5751308148be1c425eca7899a0d4655ebec",
+      "codes": [
+        "n210"
+      ]
+    },
+    {
+      "name": "N211LightRainSnowShowersV2",
+      "file": "N211LightRainSnowShowersV2.svg",
+      "sha256": "916f1134b79c32f37fea82b2e8f266b490e07ed617d0d5e9fd259073ab717dbb",
+      "codes": [
+        "n211"
+      ]
+    },
+    {
+      "name": "N212LightSnowShowersV2",
+      "file": "N212LightSnowShowersV2.svg",
+      "sha256": "891c98bf8b8fde2dd83a90e2bfa2995003e747989a2b203b5d90f8a6a5a66299",
+      "codes": [
+        "n212"
+      ]
+    },
+    {
+      "name": "N221RainSnowShowersV2",
+      "file": "N221RainSnowShowersV2.svg",
+      "sha256": "d9837ab36516b8c0d778177ffdb4a15c8efd4b7f3d9aacff317d7a878ae63c49",
+      "codes": [
+        "n221",
+        "n311",
+        "n321"
+      ]
+    },
+    {
+      "name": "N222SnowShowersV2",
+      "file": "N222SnowShowersV2.svg",
+      "sha256": "7962e916c64e5c84bcc2a3f1f079aa8bfd50ea9dd90f6c713ec0cce796c6bf2d",
+      "codes": [
+        "n222"
+      ]
+    },
+    {
+      "name": "N240TstormsV2",
+      "file": "N240TstormsV2.svg",
+      "sha256": "5329988cdf5b1827674f2190c51e8179c918009dc74e632d9f4e979674c9cf6f",
+      "codes": [
+        "n240"
+      ]
+    },
+    {
+      "name": "N310LightRainShowersV2",
+      "file": "N310LightRainShowersV2.svg",
+      "sha256": "4473948ca614230215ff84a700672c34e198e7e14952283aa6befe5b47417369",
+      "codes": [
+        "n310"
+      ]
+    },
+    {
+      "name": "N322SnowShowersV2",
+      "file": "N322SnowShowersV2.svg",
+      "sha256": "87130e3e7636761ba8c7b7ac80ebd76648b51e44a54568d0a186b839260cbca0",
+      "codes": [
+        "n322"
+      ]
+    },
+    {
+      "name": "N340TstormsV2",
+      "file": "N340TstormsV2.svg",
+      "sha256": "a80b7d3f6590b54436d62bfed9c691605b7fef1325938efb23100caf63a5e7f0",
+      "codes": [
+        "n340"
+      ]
+    },
+    {
+      "name": "N422SnowV2",
+      "file": "N422SnowV2.svg",
+      "sha256": "b9a20d73de2399739d7b39eb78133e0b74c084cf66d08c336b3e538d4115ceda",
+      "codes": [
+        "n422"
+      ]
+    },
+    {
+      "name": "PartlyCloudyDayV3",
+      "file": "PartlyCloudyDayV3.svg",
+      "sha256": "57f95629c5a1deb48cae92f65e18489a0faa4a63da65f2e3abcecb53de434112",
+      "codes": []
+    },
+    {
+      "name": "PartlyCloudyNightV2",
+      "file": "PartlyCloudyNightV2.svg",
+      "sha256": "5de8ebd47d835234c7c4159a717fefcf813c08fda4e87cd8651e29eb48079adf",
+      "codes": [
+        "n200",
+        "n500"
+      ]
+    },
+    {
+      "name": "RainSnowV2",
+      "file": "RainSnowV2.svg",
+      "sha256": "0203260047a16672998e63551b9d8b731931db6a9481f0ffd5edc2217b22ecf6",
+      "codes": [
+        "d411",
+        "d421",
+        "d431",
+        "n411",
+        "n421",
+        "n431"
+      ]
+    },
+    {
+      "name": "SmokeNight",
+      "file": "SmokeNight.svg",
+      "sha256": "0560c0ac44a84f7f2c15881663d85b53953a7178385ece8ba954decd6027c4aa",
+      "codes": []
+    },
+    {
+      "name": "Snow",
+      "file": "Snow.svg",
+      "sha256": "b48089e3569816e8882e71ffa293e81cb50db506998842dfccfa547719400a83",
+      "codes": [
+        "d422"
+      ]
+    },
+    {
+      "name": "SnowShowersDayV2",
+      "file": "SnowShowersDayV2.svg",
+      "sha256": "1cbedb37cc7bb3bcdc02e389b3a652ba03ccc9fecfe6bdbedcc4d52525730c5a",
+      "codes": [
+        "d222",
+        "d322"
+      ]
+    },
+    {
+      "name": "SnowShowersNightV2",
+      "file": "SnowShowersNightV2.svg",
+      "sha256": "550b770653cd88ce38fe77f2affd8ae7264aa5da53ee77b9576a69656c77dff8",
+      "codes": []
+    },
+    {
+      "name": "SunnyDayV3",
+      "file": "SunnyDayV3.svg",
+      "sha256": "cab2cc181976cc3e42fefd3fa2d12da22eba0693458985ce7a7174ab5cb24164",
+      "codes": [
+        "d000"
+      ]
+    },
+    {
+      "name": "Thunderstorm",
+      "file": "Thunderstorm.svg",
+      "sha256": "8ab2b9f25acc5ab73e325cbad10a477ac710761a7d3c6e9aae747c75fe8d751e",
+      "codes": [
+        "d440",
+        "n440"
+      ]
+    },
+    {
+      "name": "Thunderstorms",
+      "file": "Thunderstorms.svg",
+      "sha256": "eef42a49fdd34de5db8f294a60ab4bb04b3c14a56a78f1e925da63ed419dd44b",
+      "codes": []
+    },
+    {
+      "name": "ThunderstormsV2",
+      "file": "ThunderstormsV2.svg",
+      "sha256": "e800b153a25196cf760b5fdd5c0b5dc23c8f9c40276288f50c950f41625e8ee2",
+      "codes": []
+    },
+    {
+      "name": "WindyV2",
+      "file": "WindyV2.svg",
+      "sha256": "6d91363b189ef0ab42b6e89386d4b76cf7f03512752a141e88e16761cf8cd460",
+      "codes": [
+        "xxxx1"
+      ]
+    }
+  ]
+}
