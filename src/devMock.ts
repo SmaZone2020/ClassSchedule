@@ -211,6 +211,42 @@ export function installDevMock() {
         return data.settings;
       }
       if (command === "set_layout_columns") return null;
+      if (command === "get_daily_word") {
+        return {
+          content: "积雨空林烟火迟，蒸藜炊黍饷东菑。",
+          title: "积雨辋川庄作",
+          author: "王维"
+        };
+      }
+      if (command === "get_weather") {
+        return {
+          areaId: "101110801",
+          province: "陕西",
+          city: "汉中",
+          district: "汉台",
+          code: "02",
+          condition: "阴",
+          temperature: 15.4,
+          tempMax: 16,
+          tempMin: 11,
+          humidity: 69,
+          wind: "北风",
+          windPower: "1级",
+          aqi: 30,
+          comfort: "较舒适",
+          sport: "较不宜",
+          dressing: "较冷",
+          mood: "较差",
+          forecast: [
+            { label: "今天", date: "11/7", high: 16, low: 11, code: "02" },
+            { label: "星期日", date: "11/8", high: 16, low: 6, code: "02" },
+            { label: "星期一", date: "11/9", high: 13, low: 4, code: "00" },
+            { label: "星期二", date: "11/10", high: 14, low: 4, code: "02" },
+            { label: "星期三", date: "11/11", high: 16, low: 6, code: "01" }
+          ],
+          updatedAt: Math.floor(Date.now() / 1000)
+        };
+      }
       if (command === "get_font_catalog") {
         return {
           system: ["Segoe UI", "Microsoft YaHei", "SimSun", "KaiTi", "Consolas"],
